@@ -18,12 +18,27 @@ import type {
 const PALETTE = Object.keys(jarColors) as JarColor[];
 const paletteAt = (i: number) => PALETTE[i % PALETTE.length];
 
+// Expo Router's web static render runs in Node, where AsyncStorage's web
+// backend touches `window`. Persist to a no-op store there.
+const serverStorage = {
+  getItem: async () => null,
+  setItem: async () => {},
+  removeItem: async () => {},
+};
+const isServer = typeof window === 'undefined';
+
+/** Using an account again brings its suggestion chip back. */
+const unhide = (hidden: string[], account?: string) =>
+  account ? hidden.filter((h) => h !== account.trim().toLowerCase()) : hidden;
+
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
 interface JarState {
   jars: Jar[];
   baskets: Basket[];
   transactions: Transaction[];
+  /** Account suggestions the user removed from the jar form (lowercased). */
+  hiddenAccounts: string[];
   sortKey: SortKey;
   sortDir: SortDir;
   themeMode: ThemeMode;
@@ -34,6 +49,7 @@ interface JarState {
   addJar: (input: JarInput) => string;
   updateJar: (id: string, patch: Partial<Omit<Jar, 'id' | 'category'>>) => void;
   deleteJar: (id: string) => void;
+  hideAccount: (name: string) => void;
   togglePin: (id: string) => void;
   toggleArchive: (id: string) => void;
   /** Positive `amount` in minor units. Minus never drops below zero. */
@@ -61,6 +77,7 @@ export const useJarStore = create<JarState>()(
       jars: [],
       baskets: defaultBaskets,
       transactions: [],
+      hiddenAccounts: [],
       sortKey: 'manual',
       sortDir: 'desc',
       themeMode: 'light',
@@ -70,6 +87,7 @@ export const useJarStore = create<JarState>()(
       addJar: (input) => {
         const id = uid();
         set((s) => ({
+          hiddenAccounts: unhide(s.hiddenAccounts, input.account),
           jars: [
             { ...input, id, pinned: input.pinned ?? false, createdAt: new Date().toISOString() },
             ...s.jars,
@@ -78,12 +96,16 @@ export const useJarStore = create<JarState>()(
         return id;
       },
       updateJar: (id, patch) =>
-        set((s) => ({ jars: s.jars.map((j) => (j.id === id ? { ...j, ...patch } : j)) })),
+        set((s) => ({
+          hiddenAccounts: unhide(s.hiddenAccounts, patch.account),
+          jars: s.jars.map((j) => (j.id === id ? { ...j, ...patch } : j)) })),
       deleteJar: (id) =>
         set((s) => ({
           jars: s.jars.filter((j) => j.id !== id),
           transactions: s.transactions.filter((t) => t.jarId !== id),
         })),
+      hideAccount: (name) =>
+        set((s) => ({ hiddenAccounts: [...s.hiddenAccounts, name.trim().toLowerCase()] })),
       togglePin: (id) =>
         set((s) => ({ jars: s.jars.map((j) => (j.id === id ? { ...j, pinned: !j.pinned } : j)) })),
       toggleArchive: (id) =>
@@ -143,7 +165,7 @@ export const useJarStore = create<JarState>()(
     {
       name: 'jamjars-store',
       version: 3,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {
         const state = persisted as Partial<JarState>;
         if (version < 2 && state.themeMode === 'system') state.themeMode = 'light';
@@ -161,6 +183,7 @@ export const useJarStore = create<JarState>()(
         jars: s.jars,
         baskets: s.baskets,
         transactions: s.transactions,
+        hiddenAccounts: s.hiddenAccounts,
         sortKey: s.sortKey,
         sortDir: s.sortDir,
         themeMode: s.themeMode,

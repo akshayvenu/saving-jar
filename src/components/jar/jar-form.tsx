@@ -5,12 +5,13 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { ColorField } from '@/components/ui/color-swatches';
 import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
 import { CURRENCIES, formatDate, parseAmount, toMajor } from '@/lib/format';
+import { CATEGORY_ORDER, categoryLabel, knownAccounts } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
-import { jar as jarColors } from '@/theme/colors';
 import type { Category, CurrencyCode, Jar, JarColor, JarInput } from '@/types';
 
 interface Props {
@@ -22,17 +23,19 @@ interface Props {
   onSave: (input: JarInput) => void;
 }
 
-const COLORS = Object.keys(jarColors) as JarColor[];
-
 export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: Props) {
   const insets = useSafeAreaInsets();
   const baskets = useJarStore((s) => s.baskets);
+  const jars = useJarStore((s) => s.jars);
+  const hiddenAccounts = useJarStore((s) => s.hiddenAccounts);
+  const hideAccount = useJarStore((s) => s.hideAccount);
   const defaultCurrency = useJarStore((s) => s.defaultCurrency);
   const isEdit = !!initial;
 
   const [name, setName] = useState(initial?.name ?? '');
   const [basketId, setBasketId] = useState(initial?.basketId ?? initialBasketId ?? 'none');
   const [category, setCategory] = useState<Category>(initial?.category ?? 'cash');
+  const [account, setAccount] = useState(initial?.account ?? '');
   const [currency, setCurrency] = useState<CurrencyCode>(initial?.currency ?? defaultCurrency);
   const [saved, setSaved] = useState(initial ? String(toMajor(initial.saved)) : '');
   const [goal, setGoal] = useState(initial?.goal ? String(toMajor(initial.goal)) : '');
@@ -50,6 +53,16 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
       ...baskets.map((b) => ({ value: b.id, label: b.name })),
     ],
     [baskets],
+  );
+
+  const accountChips = useMemo(
+    () =>
+      knownAccounts(jars).filter(
+        (a) =>
+          a.toLowerCase() !== account.trim().toLowerCase() &&
+          !hiddenAccounts.includes(a.toLowerCase()),
+      ),
+    [jars, account, hiddenAccounts],
   );
 
   const savedMinor = saved.trim() === '' ? 0 : parseAmount(saved);
@@ -71,6 +84,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
       name: name.trim(),
       basketId: basketId === 'none' ? null : basketId,
       category,
+      account: account.trim() || undefined,
       currency,
       saved: savedMinor ?? 0,
       goal: goalMinor,
@@ -105,7 +119,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           error={submitted ? errors.name : undefined}
         />
 
-        <SectionLabel>Category & unit</SectionLabel>
+        <SectionLabel>Type & account</SectionLabel>
         <SelectField
           label="Basket"
           value={basketId}
@@ -116,16 +130,49 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
         <SelectField
           label="Category"
           value={category}
-          options={[
-            { value: 'cash', label: 'Cash' },
-            { value: 'cash_debt', label: 'Cash Debt' },
-          ]}
+          options={CATEGORY_ORDER.map((c) => ({ value: c, label: categoryLabel(c) }))}
           onChange={setCategory}
           disabled={isEdit}
           helper={isEdit ? 'Category is fixed after creation' : undefined}
           className="mb-4"
         />
+        <TextField
+          label="Account (Optional)"
+          value={account}
+          onChangeText={setAccount}
+          placeholder="e.g. HDFC, ICICI, Zerodha"
+          maxLength={24}
+        />
+        {accountChips.length > 0 && (
+          <View className="mb-4 mt-2 flex-row flex-wrap gap-2">
+            {accountChips.map((a) => (
+              <View
+                key={a}
+                className="min-h-[36px] flex-row items-center rounded-full border border-ink-muted/60 pl-3"
+              >
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Use account ${a}`}
+                  onPress={() => setAccount(a)}
+                  className="justify-center py-1.5"
+                >
+                  <Text className="text-sm text-ink dark:text-ink-dark">{a}</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${a} suggestion`}
+                  hitSlop={6}
+                  onPress={() => hideAccount(a)}
+                  className="px-2 py-1.5"
+                >
+                  <MaterialCommunityIcons name="close" size={16} color="#5F6368" />
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        )}
         <SelectField
+          className={accountChips.length > 0 ? undefined : 'mt-4'}
           label="Currency"
           value={currency}
           options={CURRENCIES.map((c) => ({ value: c, label: c }))}
@@ -177,30 +224,21 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           <DateTimePicker
             value={deadline ?? new Date()}
             mode="date"
+            // Android: Material 3 modal calendar (needs the M3 app theme plugin)
+            design="material"
+            title="Select date"
+            firstDayOfWeek={1}
+            positiveButton={{ label: 'Confirm' }}
             minimumDate={new Date()}
-            onChange={(_, d) => {
+            onValueChange={(_, d) => {
               setShowPicker(Platform.OS === 'ios');
-              if (d) setDeadline(d);
+              setDeadline(d);
             }}
+            onDismiss={() => setShowPicker(false)}
           />
         )}
 
-        <SectionLabel>Color</SectionLabel>
-        <View className="flex-row flex-wrap gap-3">
-          {COLORS.map((c) => (
-            <Pressable
-              key={c}
-              accessibilityRole="radio"
-              accessibilityLabel={`Color ${c}`}
-              accessibilityState={{ selected: c === color }}
-              onPress={() => setColor(c)}
-              style={{ backgroundColor: jarColors[c] }}
-              className={`h-11 w-11 items-center justify-center rounded-full border-2 ${c === color ? 'border-ink' : 'border-transparent'}`}
-            >
-              {c === color && <MaterialCommunityIcons name="check" size={20} color="#1B1B1B" />}
-            </Pressable>
-          ))}
-        </View>
+        <ColorField className="mt-4" value={color} onChange={setColor} />
       </ScrollView>
 
       <View

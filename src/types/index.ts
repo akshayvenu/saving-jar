@@ -1,5 +1,5 @@
-export type Category = 'cash' | 'cash_debt';
-export type CurrencyCode = 'INR' | 'USD' | 'EUR' | 'GBP';
+export type Category = 'cash' | 'investment' | 'cash_debt';
+export type CurrencyCode = 'INR' | 'EUR';
 export type JarColor = 'peach' | 'slate' | 'mint' | 'lavender' | 'butter' | 'sky' | 'rose' | 'sage';
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type SortKey = 'manual' | 'name' | 'progress' | 'amount' | 'goal' | 'remaining' | 'deadline';
@@ -11,6 +11,8 @@ export interface Jar {
   name: string;
   basketId: string | null;
   category: Category;
+  /** Where the money is held, e.g. a bank or broker. */
+  account?: string;
   currency: CurrencyCode;
   saved: number;
   goal: number | null;

@@ -20,7 +20,9 @@ export function computeTotals(jars: Jar[]): TotalRow[] {
     row.total += j.saved;
     map.set(key, row);
   }
-  return [...map.values()].sort((a, b) => a.category.localeCompare(b.category));
+  return [...map.values()].sort(
+    (a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category),
+  );
 }
 
 const ascending: Record<SortKey, (a: Jar, b: Jar) => number> = {
@@ -51,4 +53,37 @@ export function jarsInBasket(jars: Jar[], id: string): Jar[] {
   return active.filter((j) => j.basketId === id);
 }
 
-export const categoryLabel = (c: Category) => (c === 'cash' ? 'Cash' : 'Cash Debt');
+export const CATEGORY_ORDER: Category[] = ['cash', 'investment', 'cash_debt'];
+
+const CATEGORY_LABEL: Record<Category, string> = {
+  cash: 'Cash / Savings',
+  investment: 'Investment',
+  cash_debt: 'Loan / Debt',
+};
+
+export const categoryLabel = (c: Category) => CATEGORY_LABEL[c];
+
+export const CATEGORY_ICON: Record<Category, 'wallet-outline' | 'chart-line' | 'credit-card-outline'> = {
+  cash: 'wallet-outline',
+  investment: 'chart-line',
+  cash_debt: 'credit-card-outline',
+};
+
+/** Distinct account names across jars (case-insensitive, first spelling wins). */
+export function knownAccounts(jars: Jar[]): string[] {
+  const seen = new Map<string, string>();
+  for (const j of jars) {
+    const name = j.account?.trim();
+    if (name && !seen.has(name.toLowerCase())) seen.set(name.toLowerCase(), name);
+  }
+  return [...seen.values()].sort((a, b) => a.localeCompare(b));
+}
+
+/** Whole calendar days from today to the deadline (negative = overdue), or null. */
+export function daysUntilDeadline(jar: Jar, now = new Date()): number | null {
+  if (!jar.deadline) return null;
+  const d = new Date(jar.deadline);
+  const due = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  return Math.round((due - today) / 86_400_000);
+}
