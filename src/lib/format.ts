@@ -2,12 +2,10 @@ import type { CurrencyCode } from '@/types';
 
 const LOCALE: Record<CurrencyCode, string> = {
   INR: 'en-IN',
-  USD: 'en-US',
   EUR: 'de-DE',
-  GBP: 'en-GB',
 };
 
-export const CURRENCIES: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP'];
+export const CURRENCIES: CurrencyCode[] = ['INR', 'EUR'];
 
 export const toMinor = (major: number) => Math.round(major * 100);
 export const toMajor = (minor: number) => minor / 100;
