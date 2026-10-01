@@ -32,11 +32,19 @@ export interface Basket {
 export interface Transaction {
   id: string;
   jarId: string;
-  type: 'add' | 'minus';
+  type: 'add' | 'minus' | 'edit';
   amount: number;
   balanceAfter: number;
   note?: string;
+  /** Field changes on `edit` rows, formatted when the edit was made. */
+  changes?: FieldChange[];
   createdAt: string;
+}
+
+export interface FieldChange {
+  label: string;
+  from: string;
+  to: string;
 }
 
 export type JarInput = Omit<Jar, 'id' | 'createdAt' | 'pinned' | 'archived'> & { pinned?: boolean };

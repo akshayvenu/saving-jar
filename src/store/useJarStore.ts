@@ -2,10 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { formatDate, formatMoney } from '@/lib/format';
 import { jar as jarColors } from '@/theme/colors';
 import type {
   Basket,
   CurrencyCode,
+  FieldChange,
   Jar,
   JarColor,
   JarInput,
@@ -31,6 +33,31 @@ const unhide = (hidden: string[], account?: string) =>
   account ? hidden.filter((h) => h !== account.trim().toLowerCase()) : hidden;
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Human-readable diff of everything but the balance, for the history log. */
+function describeChanges(prev: Jar, next: Jar, baskets: Basket[]): FieldChange[] {
+  const text = (v?: string) => v?.trim() || '—';
+  const money = (v: number | null, currency: CurrencyCode) =>
+    v == null ? 'None' : formatMoney(v, currency);
+  const date = (v?: string) => (v ? formatDate(v) : 'None');
+  const basket = (id: string | null) => baskets.find((b) => b.id === id)?.name ?? 'No basket';
+
+  const fields: [string, string, string][] = [
+    ['Name', text(prev.name), text(next.name)],
+    ['Basket', basket(prev.basketId), basket(next.basketId)],
+    ['Account', text(prev.account), text(next.account)],
+    ['Currency', prev.currency, next.currency],
+    ['Goal', money(prev.goal, prev.currency), money(next.goal, next.currency)],
+    ['Deadline', date(prev.deadline), date(next.deadline)],
+    ['Note', text(prev.note), text(next.note)],
+    ['Colour', capitalize(prev.color), capitalize(next.color)],
+  ];
+  return fields
+    .filter(([, from, to]) => from !== to)
+    .map(([label, from, to]) => ({ label, from, to }));
+}
 
 interface JarState {
   jars: Jar[];
@@ -92,9 +119,43 @@ export const useJarStore = create<JarState>()(
         return id;
       },
       updateJar: (id, patch) =>
-        set((s) => ({
-          hiddenAccounts: unhide(s.hiddenAccounts, patch.account),
-          jars: s.jars.map((j) => (j.id === id ? { ...j, ...patch } : j)) })),
+        set((s) => {
+          const jar = s.jars.find((j) => j.id === id);
+          if (!jar) return s;
+          const next = { ...jar, ...patch };
+          const createdAt = new Date().toISOString();
+          const logged: Transaction[] = [];
+
+          const changes = describeChanges(jar, next, s.baskets);
+          if (changes.length) {
+            logged.push({
+              id: uid(),
+              jarId: id,
+              type: 'edit',
+              amount: 0,
+              balanceAfter: next.saved,
+              changes,
+              createdAt,
+            });
+          }
+          if (next.saved !== jar.saved) {
+            logged.push({
+              id: uid(),
+              jarId: id,
+              type: next.saved > jar.saved ? 'add' : 'minus',
+              amount: Math.abs(next.saved - jar.saved),
+              balanceAfter: next.saved,
+              note: 'Edited',
+              createdAt,
+            });
+          }
+
+          return {
+            hiddenAccounts: unhide(s.hiddenAccounts, patch.account),
+            jars: s.jars.map((j) => (j.id === id ? next : j)),
+            transactions: [...logged, ...s.transactions],
+          };
+        }),
       deleteJar: (id) =>
         set((s) => ({
           jars: s.jars.filter((j) => j.id !== id),

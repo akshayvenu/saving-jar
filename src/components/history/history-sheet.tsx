@@ -131,7 +131,7 @@ export function HistorySheet({ jar, onClose }: Props) {
               History
             </Text>
             <Text className="mt-1 text-sm text-ink-muted dark:text-ink-mutedDark">
-              {txs.length} transaction{txs.length === 1 ? '' : 's'}
+              {txs.length} {txs.length === 1 ? 'entry' : 'entries'}
             </Text>
           </View>
 
