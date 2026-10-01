@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, FlatList, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
-import { ColorSwatches } from '@/components/ui/color-swatches';
+import { ColorField } from '@/components/ui/color-swatches';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -52,7 +52,7 @@ export default function BasketsScreen() {
           returnKeyType="done"
           onSubmitEditing={submit}
         />
-        <ColorSwatches value={color} onChange={setColor} />
+        <ColorField className="mb-3" value={color} onChange={setColor} />
         <Button
           title={editingId ? 'Save basket' : 'Add basket'}
           onPress={submit}
