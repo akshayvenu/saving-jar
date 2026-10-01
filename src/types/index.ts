@@ -1,7 +1,6 @@
 export type Category = 'cash' | 'investment' | 'cash_debt';
 export type CurrencyCode = 'INR' | 'EUR';
 export type JarColor = 'peach' | 'slate' | 'mint' | 'lavender' | 'butter' | 'sky' | 'rose' | 'sage';
-export type ThemeMode = 'system' | 'light' | 'dark';
 export type SortKey = 'manual' | 'name' | 'progress' | 'amount' | 'goal' | 'remaining' | 'deadline';
 export type SortDir = 'asc' | 'desc';
 

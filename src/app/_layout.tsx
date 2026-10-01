@@ -9,10 +9,10 @@ import {
   useFonts,
 } from '@expo-google-fonts/jost';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { colorScheme as nwColorScheme, useColorScheme } from 'nativewind';
+import { colorScheme as nwColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -29,14 +29,12 @@ export default function RootLayout() {
     Jost_700Bold,
     Jost_800ExtraBold,
   });
-  const themeMode = useJarStore((s) => s.themeMode);
   const hasHydrated = useJarStore((s) => s.hasHydrated);
   const ready = fontsLoaded && hasHydrated;
-  const { colorScheme } = useColorScheme();
 
   useEffect(() => {
-    nwColorScheme.set(themeMode);
-  }, [themeMode]);
+    nwColorScheme.set('light');
+  }, []);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -44,11 +42,10 @@ export default function RootLayout() {
 
   if (!ready) return null;
 
-  const dark = colorScheme === 'dark';
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider value={dark ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={DefaultTheme}>
           <BottomSheetModalProvider>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
@@ -59,7 +56,7 @@ export default function RootLayout() {
               <Stack.Screen name="archive" />
               <Stack.Screen name="settings" />
             </Stack>
-            <StatusBar style={dark ? 'light' : 'dark'} />
+            <StatusBar style="dark" />
           </BottomSheetModalProvider>
         </ThemeProvider>
       </SafeAreaProvider>

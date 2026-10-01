@@ -7,25 +7,13 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { CURRENCIES } from '@/lib/format';
 import { useJarStore } from '@/store/useJarStore';
-import type { ThemeMode } from '@/types';
 
 export default function SettingsScreen() {
-  const { themeMode, defaultCurrency, setThemeMode, setDefaultCurrency } = useJarStore();
+  const { defaultCurrency, setDefaultCurrency } = useJarStore();
   return (
     <Screen>
       <ScreenHeader title="Settings" />
       <ScrollView contentContainerClassName="px-5 pb-10">
-        <SectionLabel>Appearance</SectionLabel>
-        <SelectField<ThemeMode>
-          label="Theme"
-          value={themeMode}
-          options={[
-            { value: 'system', label: 'System' },
-            { value: 'light', label: 'Light' },
-            { value: 'dark', label: 'Dark' },
-          ]}
-          onChange={setThemeMode}
-        />
         <SectionLabel>Defaults</SectionLabel>
         <SelectField
           label="Default currency"

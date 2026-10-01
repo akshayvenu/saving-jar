@@ -11,7 +11,6 @@ import type {
   JarInput,
   SortDir,
   SortKey,
-  ThemeMode,
   Transaction,
 } from '@/types';
 
@@ -41,7 +40,6 @@ interface JarState {
   hiddenAccounts: string[];
   sortKey: SortKey;
   sortDir: SortDir;
-  themeMode: ThemeMode;
   defaultCurrency: CurrencyCode;
   /** True once saved data has been loaded from device storage. */
   hasHydrated: boolean;
@@ -62,7 +60,6 @@ interface JarState {
 
   setSortKey: (key: SortKey) => void;
   setSortDir: (dir: SortDir) => void;
-  setThemeMode: (mode: ThemeMode) => void;
   setDefaultCurrency: (c: CurrencyCode) => void;
 }
 
@@ -80,7 +77,6 @@ export const useJarStore = create<JarState>()(
       hiddenAccounts: [],
       sortKey: 'manual',
       sortDir: 'desc',
-      themeMode: 'light',
       defaultCurrency: 'INR',
       hasHydrated: false,
 
@@ -159,7 +155,6 @@ export const useJarStore = create<JarState>()(
 
       setSortKey: (sortKey) => set({ sortKey }),
       setSortDir: (sortDir) => set({ sortDir }),
-      setThemeMode: (themeMode) => set({ themeMode }),
       setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency }),
     }),
     {
@@ -168,7 +163,6 @@ export const useJarStore = create<JarState>()(
       storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {
         const state = persisted as Partial<JarState>;
-        if (version < 2 && state.themeMode === 'system') state.themeMode = 'light';
         if (version < 3) {
           state.baskets = (state.baskets ?? []).map((b, i) => ({
             ...b,
@@ -186,7 +180,6 @@ export const useJarStore = create<JarState>()(
         hiddenAccounts: s.hiddenAccounts,
         sortKey: s.sortKey,
         sortDir: s.sortDir,
-        themeMode: s.themeMode,
         defaultCurrency: s.defaultCurrency,
       }),
       onRehydrateStorage: () => () => useJarStore.setState({ hasHydrated: true }),
