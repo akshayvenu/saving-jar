@@ -34,7 +34,8 @@
           "imageWidth": 76
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "./plugins/with-material3-theme"
     ],
     "experiments": {
       "typedRoutes": true,
