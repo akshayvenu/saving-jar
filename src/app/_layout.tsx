@@ -5,6 +5,7 @@ import {
   Jost_500Medium,
   Jost_600SemiBold,
   Jost_700Bold,
+  Jost_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/jost';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -26,6 +27,7 @@ export default function RootLayout() {
     Jost_500Medium,
     Jost_600SemiBold,
     Jost_700Bold,
+    Jost_800ExtraBold,
   });
   const themeMode = useJarStore((s) => s.themeMode);
   const hasHydrated = useJarStore((s) => s.hasHydrated);
@@ -52,8 +54,9 @@ export default function RootLayout() {
               <Stack.Screen name="index" />
               <Stack.Screen name="jar/new" options={{ presentation: 'modal' }} />
               <Stack.Screen name="jar/[id]/edit" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="jar/[id]/history" />
+              <Stack.Screen name="basket/[id]" />
               <Stack.Screen name="baskets" />
+              <Stack.Screen name="archive" />
               <Stack.Screen name="settings" />
             </Stack>
             <StatusBar style={dark ? 'light' : 'dark'} />

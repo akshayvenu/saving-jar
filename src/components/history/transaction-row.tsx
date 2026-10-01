@@ -1,29 +1,25 @@
 import { Text, View } from 'react-native';
 
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatMoney, formatShortDate } from '@/lib/format';
 import type { CurrencyCode, Transaction } from '@/types';
 
 export function TransactionRow({ tx, currency }: { tx: Transaction; currency: CurrencyCode }) {
   const isAdd = tx.type === 'add';
   return (
-    <View className="mx-4 mb-3 flex-row items-center justify-between rounded-2xl bg-surface-card p-4 dark:bg-surface-cardDark">
+    <View className="mx-6 flex-row items-center justify-between border-b border-ink-muted/30 py-3">
       <View className="flex-1 pr-3">
-        <Text className="text-base text-ink dark:text-ink-dark">
-          {tx.note ?? (isAdd ? 'Added' : 'Withdrawn')}
+        <Text className="font-semibold text-[15px] text-ink dark:text-ink-dark">
+          <Text className="uppercase">{isAdd ? 'Deposit' : 'Withdrawal'}</Text>
+          {tx.note ? ` · ${tx.note}` : ''}
         </Text>
-        <Text className="mt-0.5 text-sm text-ink-muted dark:text-ink-mutedDark">
-          {formatDate(tx.createdAt)}
-        </Text>
-      </View>
-      <View className="items-end">
-        <Text className={`font-semibold text-lg ${isAdd ? 'text-brand' : 'text-danger'}`}>
-          {isAdd ? '+' : '−'}
-          {formatMoney(tx.amount, currency)}
-        </Text>
-        <Text className="text-xs text-ink-muted dark:text-ink-mutedDark">
-          Balance {formatMoney(tx.balanceAfter, currency)}
+        <Text className="text-sm text-ink-muted dark:text-ink-mutedDark">
+          {formatShortDate(tx.createdAt)}
         </Text>
       </View>
+      <Text className={`font-semibold text-base ${isAdd ? 'text-brand' : 'text-danger'}`}>
+        {isAdd ? '+' : '−'}
+        {formatMoney(tx.amount, currency)}
+      </Text>
     </View>
   );
 }

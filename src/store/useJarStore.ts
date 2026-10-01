@@ -2,7 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { Basket, CurrencyCode, Jar, JarInput, SortKey, ThemeMode, Transaction } from '@/types';
+import { jar as jarColors } from '@/theme/colors';
+import type {
+  Basket,
+  CurrencyCode,
+  Jar,
+  JarColor,
+  JarInput,
+  SortDir,
+  SortKey,
+  ThemeMode,
+  Transaction,
+} from '@/types';
+
+const PALETTE = Object.keys(jarColors) as JarColor[];
+const paletteAt = (i: number) => PALETTE[i % PALETTE.length];
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
@@ -11,6 +25,7 @@ interface JarState {
   baskets: Basket[];
   transactions: Transaction[];
   sortKey: SortKey;
+  sortDir: SortDir;
   themeMode: ThemeMode;
   defaultCurrency: CurrencyCode;
   /** True once saved data has been loaded from device storage. */
@@ -20,21 +35,24 @@ interface JarState {
   updateJar: (id: string, patch: Partial<Omit<Jar, 'id' | 'category'>>) => void;
   deleteJar: (id: string) => void;
   togglePin: (id: string) => void;
+  toggleArchive: (id: string) => void;
   /** Positive `amount` in minor units. Minus never drops below zero. */
   applyAmount: (jarId: string, type: 'add' | 'minus', amount: number, note?: string) => void;
 
-  addBasket: (name: string) => void;
+  addBasket: (name: string, color?: JarColor) => string;
   renameBasket: (id: string, name: string) => void;
+  recolorBasket: (id: string, color: JarColor) => void;
   deleteBasket: (id: string) => void;
 
   setSortKey: (key: SortKey) => void;
+  setSortDir: (dir: SortDir) => void;
   setThemeMode: (mode: ThemeMode) => void;
   setDefaultCurrency: (c: CurrencyCode) => void;
 }
 
 const defaultBaskets: Basket[] = [
-  { id: 'b1', name: 'Essentials' },
-  { id: 'b2', name: 'Goals' },
+  { id: 'b1', name: 'Essentials', color: 'mint' },
+  { id: 'b2', name: 'Goals', color: 'lavender' },
 ];
 
 export const useJarStore = create<JarState>()(
@@ -44,6 +62,7 @@ export const useJarStore = create<JarState>()(
       baskets: defaultBaskets,
       transactions: [],
       sortKey: 'manual',
+      sortDir: 'desc',
       themeMode: 'light',
       defaultCurrency: 'INR',
       hasHydrated: false,
@@ -67,6 +86,12 @@ export const useJarStore = create<JarState>()(
         })),
       togglePin: (id) =>
         set((s) => ({ jars: s.jars.map((j) => (j.id === id ? { ...j, pinned: !j.pinned } : j)) })),
+      toggleArchive: (id) =>
+        set((s) => ({
+          jars: s.jars.map((j) =>
+            j.id === id ? { ...j, archived: !j.archived, pinned: false } : j,
+          ),
+        })),
 
       applyAmount: (jarId, type, amount, note) =>
         set((s) => {
@@ -88,12 +113,22 @@ export const useJarStore = create<JarState>()(
           };
         }),
 
-      addBasket: (name) =>
-        set((s) => ({ baskets: [...s.baskets, { id: uid(), name: name.trim() }] })),
+      addBasket: (name, color) => {
+        const id = uid();
+        set((s) => ({
+          baskets: [
+            ...s.baskets,
+            { id, name: name.trim(), color: color ?? paletteAt(s.baskets.length) },
+          ],
+        }));
+        return id;
+      },
       renameBasket: (id, name) =>
         set((s) => ({
           baskets: s.baskets.map((b) => (b.id === id ? { ...b, name: name.trim() } : b)),
         })),
+      recolorBasket: (id, color) =>
+        set((s) => ({ baskets: s.baskets.map((b) => (b.id === id ? { ...b, color } : b)) })),
       deleteBasket: (id) =>
         set((s) => ({
           baskets: s.baskets.filter((b) => b.id !== id),
@@ -101,16 +136,25 @@ export const useJarStore = create<JarState>()(
         })),
 
       setSortKey: (sortKey) => set({ sortKey }),
+      setSortDir: (sortDir) => set({ sortDir }),
       setThemeMode: (themeMode) => set({ themeMode }),
       setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency }),
     }),
     {
       name: 'jamjars-store',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persisted, version) => {
         const state = persisted as Partial<JarState>;
         if (version < 2 && state.themeMode === 'system') state.themeMode = 'light';
+        if (version < 3) {
+          state.baskets = (state.baskets ?? []).map((b, i) => ({
+            ...b,
+            color: b.color ?? paletteAt(i + 1),
+          }));
+          // Old hard-coded directions: name/deadline ascending, the rest descending.
+          state.sortDir = state.sortKey === 'name' || state.sortKey === 'deadline' ? 'asc' : 'desc';
+        }
         return state as JarState;
       },
       partialize: (s) => ({
@@ -118,6 +162,7 @@ export const useJarStore = create<JarState>()(
         baskets: s.baskets,
         transactions: s.transactions,
         sortKey: s.sortKey,
+        sortDir: s.sortDir,
         themeMode: s.themeMode,
         defaultCurrency: s.defaultCurrency,
       }),

@@ -2,27 +2,40 @@ import { useState } from 'react';
 import { Alert, FlatList, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
+import { ColorSwatches } from '@/components/ui/color-swatches';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { TextField } from '@/components/ui/text-field';
 import { useJarStore } from '@/store/useJarStore';
+import { jar as jarColors } from '@/theme/colors';
+import type { JarColor } from '@/types';
 
 export default function BasketsScreen() {
-  const { baskets, jars, addBasket, renameBasket, deleteBasket } = useJarStore();
+  const { baskets, jars, addBasket, renameBasket, recolorBasket, deleteBasket } = useJarStore();
   const [name, setName] = useState('');
+  const [color, setColor] = useState<JarColor>(
+    () => (Object.keys(jarColors) as JarColor[])[baskets.length % 8],
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const reset = () => {
+    setName('');
+    setEditingId(null);
+    setColor((Object.keys(jarColors) as JarColor[])[(baskets.length + 1) % 8]);
+  };
 
   const submit = () => {
     if (!name.trim()) return;
-    if (editingId) renameBasket(editingId, name);
-    else addBasket(name);
-    setName('');
-    setEditingId(null);
+    if (editingId) {
+      renameBasket(editingId, name);
+      recolorBasket(editingId, color);
+    } else addBasket(name, color);
+    reset();
   };
 
   const confirmDelete = (id: string, label: string) =>
-    Alert.alert('Delete basket?', `Jars in "${label}" will move to "None".`, [
+    Alert.alert('Delete basket?', `Jars in "${label}" will move to "Unsorted".`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteBasket(id) },
     ]);
@@ -39,8 +52,9 @@ export default function BasketsScreen() {
           returnKeyType="done"
           onSubmitEditing={submit}
         />
+        <ColorSwatches value={color} onChange={setColor} />
         <Button
-          title={editingId ? 'Save name' : 'Add basket'}
+          title={editingId ? 'Save basket' : 'Add basket'}
           onPress={submit}
           disabled={!name.trim()}
         />
@@ -55,19 +69,23 @@ export default function BasketsScreen() {
           </Text>
         }
         renderItem={({ item }) => (
-          <View className="mx-4 mb-3 flex-row items-center rounded-2xl bg-surface-card p-3 pl-4 dark:bg-surface-cardDark">
+          <View
+            style={{ backgroundColor: jarColors[item.color] }}
+            className="mx-4 mb-3 flex-row items-center rounded-2xl p-3 pl-4"
+          >
             <View className="flex-1">
-              <Text className="text-lg text-ink dark:text-ink-dark">{item.name}</Text>
-              <Text className="text-sm text-ink-muted dark:text-ink-mutedDark">
+              <Text className="text-lg text-ink">{item.name}</Text>
+              <Text className="text-sm text-ink/70">
                 {jars.filter((j) => j.basketId === item.id).length} jars
               </Text>
             </View>
             <IconButton
               icon="pencil-outline"
-              label={`Rename ${item.name}`}
+              label={`Edit ${item.name}`}
               onPress={() => {
                 setEditingId(item.id);
                 setName(item.name);
+                setColor(item.color);
               }}
             />
             <IconButton

@@ -60,8 +60,8 @@ function WaveLayer({
   }));
 
   return (
-    <Animated.View style={[{ position: 'absolute', left: 0, top: 0, opacity }, style]}>
-      <Svg width={w * 2} height={h + AMP * 2}>
+    <Animated.View style={[{ position: 'absolute', left: 0, top: 0, opacity, pointerEvents: 'none' }, style]}>
+      <Svg width={w * 2} height={h + AMP * 2} pointerEvents="none">
         <Path d={wavePath(w, h)} fill={color} />
       </Svg>
     </Animated.View>
@@ -82,7 +82,11 @@ export function JarFill({ progress, color }: Props) {
   }, [h, progress, level]);
 
   return (
-    <View pointerEvents="none" className="absolute inset-0 overflow-hidden" onLayout={onLayout}>
+    <View
+      style={{ pointerEvents: 'none' }}
+      className="absolute inset-0 overflow-hidden"
+      onLayout={onLayout}
+    >
       {w > 0 && progress > 0 && (
         <>
           <WaveLayer w={w} h={h} level={level} color={color} opacity={0.6} duration={5200} reverse />

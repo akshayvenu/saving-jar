@@ -41,3 +41,12 @@ export function formatDate(iso: string): string {
     year: 'numeric',
   });
 }
+
+/** Compact numeric date, e.g. "30/09/2026". */
+export function formatShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}

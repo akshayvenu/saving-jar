@@ -2,7 +2,8 @@ export type Category = 'cash' | 'cash_debt';
 export type CurrencyCode = 'INR' | 'USD' | 'EUR' | 'GBP';
 export type JarColor = 'peach' | 'slate' | 'mint' | 'lavender' | 'butter' | 'sky' | 'rose' | 'sage';
 export type ThemeMode = 'system' | 'light' | 'dark';
-export type SortKey = 'manual' | 'name' | 'progress' | 'amount' | 'deadline';
+export type SortKey = 'manual' | 'name' | 'progress' | 'amount' | 'goal' | 'remaining' | 'deadline';
+export type SortDir = 'asc' | 'desc';
 
 /** Amounts are integer minor units (paise/cents) to avoid float drift. */
 export interface Jar {
@@ -17,12 +18,14 @@ export interface Jar {
   deadline?: string; // ISO date
   color: JarColor;
   pinned: boolean;
+  archived?: boolean;
   createdAt: string;
 }
 
 export interface Basket {
   id: string;
   name: string;
+  color: JarColor;
 }
 
 export interface Transaction {
@@ -35,4 +38,4 @@ export interface Transaction {
   createdAt: string;
 }
 
-export type JarInput = Omit<Jar, 'id' | 'createdAt' | 'pinned'> & { pinned?: boolean };
+export type JarInput = Omit<Jar, 'id' | 'createdAt' | 'pinned' | 'archived'> & { pinned?: boolean };

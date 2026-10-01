@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View, type PressableProps } from 'react-native';
 
 type Variant = 'primary' | 'danger' | 'success' | 'outline' | 'ghost';
 
@@ -21,6 +21,7 @@ interface Props extends Omit<PressableProps, 'children'> {
   title: string;
   variant?: Variant;
   loading?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
@@ -28,6 +29,7 @@ export function Button({
   title,
   variant = 'primary',
   loading,
+  compact,
   disabled,
   className,
   ...rest
@@ -37,14 +39,22 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={title}
       disabled={disabled || loading}
-      className={`min-h-[48px] items-center justify-center rounded-full px-6 active:opacity-80 ${container[variant]} ${disabled ? 'opacity-40' : ''} ${className ?? ''}`}
+      hitSlop={4}
+      className={`overflow-hidden rounded-full ${container[variant]} ${className ?? ''}`}
+      style={({ pressed }) => ({ opacity: disabled ? 0.4 : pressed ? 0.8 : 1 })}
       {...rest}
     >
-      {loading ? (
-        <ActivityIndicator color="#fff" />
-      ) : (
-        <Text className={`font-medium text-base ${label[variant]}`}>{title}</Text>
-      )}
+      {/* Full-size hit target: on Android only child views were catching taps, not the Pressable's own padding. */}
+      <View
+        collapsable={false}
+        className={`${compact ? 'min-h-[40px]' : 'min-h-[48px]'} items-center justify-center px-6`}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text className={`font-medium text-base ${label[variant]}`}>{title}</Text>
+        )}
+      </View>
     </Pressable>
   );
 }

@@ -5,7 +5,6 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
-import { PremiumChip } from '@/components/ui/chip';
 import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
@@ -17,20 +16,22 @@ import type { Category, CurrencyCode, Jar, JarColor, JarInput } from '@/types';
 interface Props {
   title: string;
   initial?: Jar;
+  /** Basket preselected on a new jar. */
+  initialBasketId?: string;
   onCancel: () => void;
   onSave: (input: JarInput) => void;
 }
 
 const COLORS = Object.keys(jarColors) as JarColor[];
 
-export function JarForm({ title, initial, onCancel, onSave }: Props) {
+export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: Props) {
   const insets = useSafeAreaInsets();
   const baskets = useJarStore((s) => s.baskets);
   const defaultCurrency = useJarStore((s) => s.defaultCurrency);
   const isEdit = !!initial;
 
   const [name, setName] = useState(initial?.name ?? '');
-  const [basketId, setBasketId] = useState(initial?.basketId ?? 'none');
+  const [basketId, setBasketId] = useState(initial?.basketId ?? initialBasketId ?? 'none');
   const [category, setCategory] = useState<Category>(initial?.category ?? 'cash');
   const [currency, setCurrency] = useState<CurrencyCode>(initial?.currency ?? defaultCurrency);
   const [saved, setSaved] = useState(initial ? String(toMajor(initial.saved)) : '');
@@ -38,6 +39,7 @@ export function JarForm({ title, initial, onCancel, onSave }: Props) {
   const [deadline, setDeadline] = useState<Date | null>(
     initial?.deadline ? new Date(initial.deadline) : null,
   );
+  const [note, setNote] = useState(initial?.note ?? '');
   const [color, setColor] = useState<JarColor>(initial?.color ?? 'peach');
   const [showPicker, setShowPicker] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -72,7 +74,7 @@ export function JarForm({ title, initial, onCancel, onSave }: Props) {
       currency,
       saved: savedMinor ?? 0,
       goal: goalMinor,
-      note: initial?.note,
+      note: note.trim() || undefined,
       deadline: deadline?.toISOString(),
       color,
     });
@@ -155,8 +157,9 @@ export function JarForm({ title, initial, onCancel, onSave }: Props) {
         <TextField
           className="mt-4"
           label="Note (Optional)"
-          editable={false}
-          right={<PremiumChip />}
+          value={note}
+          onChangeText={setNote}
+          maxLength={120}
         />
 
         <Pressable

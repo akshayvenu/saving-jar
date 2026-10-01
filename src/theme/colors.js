@@ -12,4 +12,7 @@ const jar = {
   sage: '#D9E3C4',
 };
 
-module.exports = { brand, jar };
+/** Stronger fills for selected pills. */
+const accent = { blue: '#4A90C8', pink: '#F7B6C6' };
+
+module.exports = { brand, jar, accent };
