@@ -1,6 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
 
+import { danger, ink } from '@/theme/colors';
+
+import { SheetFrame } from './sheet-frame';
+
 export interface SheetOption {
   key: string;
   label: string;
@@ -17,7 +21,7 @@ interface Props {
   onClose: () => void;
 }
 
-/** Lightweight action / choice sheet. */
+/** Lightweight action / choice sheet: a stack of outlined rows with icon tiles. */
 export function OptionSheet({ visible, title, options, onSelect, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -26,36 +30,42 @@ export function OptionSheet({ visible, title, options, onSelect, onClose }: Prop
         onPress={onClose}
         accessibilityLabel="Close"
       >
-        <View className="rounded-t-3xl bg-surface p-4 pb-10 dark:bg-surface-cardDark">
-          <Text
-            accessibilityRole="header"
-            className="mb-2 px-2 font-semibold text-lg text-ink dark:text-ink-dark"
-          >
-            {title}
-          </Text>
-          {options.map((o) => (
-            <Pressable
-              key={o.key}
-              accessibilityRole="button"
-              onPress={() => onSelect(o.key)}
-              className="min-h-[52px] flex-row items-center gap-3 rounded-xl px-3 active:bg-black/5"
-            >
-              {o.icon && (
-                <MaterialCommunityIcons
-                  name={o.icon}
-                  size={22}
-                  color={o.destructive ? '#E06666' : '#5F6368'}
-                />
-              )}
-              <Text
-                className={`flex-1 text-base ${o.destructive ? 'text-danger' : 'text-ink dark:text-ink-dark'}`}
+        <SheetFrame title={title}>
+          <View className="overflow-hidden rounded-block border-hair border-ink bg-surface-card">
+            {options.map((o, i) => (
+              <Pressable
+                key={o.key}
+                accessibilityRole="button"
+                onPress={() => onSelect(o.key)}
+                className={`min-h-[56px] flex-row items-center gap-3 px-3 active:bg-surface ${
+                  i > 0 ? 'border-t-hair border-surface-line' : ''
+                }`}
               >
-                {o.label}
-              </Text>
-              {o.selected && <MaterialCommunityIcons name="check" size={20} color="#0F9D8A" />}
-            </Pressable>
-          ))}
-        </View>
+                {o.icon && (
+                  <View
+                    className={`h-9 w-9 items-center justify-center rounded-xl ${
+                      o.destructive ? 'bg-danger/10' : 'bg-surface'
+                    }`}
+                  >
+                    <MaterialCommunityIcons
+                      name={o.icon}
+                      size={20}
+                      color={o.destructive ? danger : ink.DEFAULT}
+                    />
+                  </View>
+                )}
+                <Text
+                  className={`flex-1 font-medium text-base ${o.destructive ? 'text-danger' : 'text-ink'}`}
+                >
+                  {o.label}
+                </Text>
+                {o.selected && (
+                  <MaterialCommunityIcons name="check" size={20} color={ink.DEFAULT} />
+                )}
+              </Pressable>
+            ))}
+          </View>
+        </SheetFrame>
       </Pressable>
     </Modal>
   );

@@ -1,14 +1,15 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, SectionList, Text, View } from 'react-native';
+import { Alert, SectionList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HistorySheet } from '@/components/history/history-sheet';
 import { AmountSheet, type AmountMode } from '@/components/home/amount-sheet';
 import { JarCard } from '@/components/home/jar-card';
 import { TotalsCard } from '@/components/home/totals-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { OptionSheet } from '@/components/ui/option-sheet';
+import { SectionLabel } from '@/components/ui/section-label';
 import { computeTotals, sortJars } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import type { Jar } from '@/types';
@@ -85,25 +86,18 @@ export function JarList({ jars, grouped, emptyText }: Props) {
         stickySectionHeadersEnabled={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
         ListHeaderComponent={<TotalsCard rows={totals} />}
-        ListEmptyComponent={
-          <View className="items-center px-8 pt-20">
-            <MaterialCommunityIcons name="wallet-plus-outline" size={72} color="#9AA0A6" />
-            <Text className="mt-4 text-center text-lg text-ink-muted dark:text-ink-mutedDark">
-              {emptyText}
-            </Text>
-          </View>
-        }
+        ListEmptyComponent={<EmptyState text={emptyText} />}
         renderSectionHeader={({ section }) =>
           section.title ? (
-            <Text className="mb-3 mt-5 px-6 text-lg text-ink dark:text-ink-dark">
-              {section.title}
-            </Text>
+            <View className="px-5">
+              <SectionLabel meta={String(section.data.length)}>{section.title}</SectionLabel>
+            </View>
           ) : (
-            <View className="h-4" />
+            <View className="h-5" />
           )
         }
         renderItem={({ item }) => (
-          <View className="px-6">
+          <View className="px-5">
             <JarCard
               jar={item}
               onAdd={onAdd}

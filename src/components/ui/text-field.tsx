@@ -1,5 +1,7 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { Text, TextInput, View, type TextInputProps } from 'react-native';
+
+import { ink } from '@/theme/colors';
 
 interface Props extends TextInputProps {
   label: string;
@@ -9,35 +11,42 @@ interface Props extends TextInputProps {
   className?: string;
 }
 
-/** Outlined field with the label sitting on the border (Material-style). */
+/** Label above a white block; the outline turns ink while focused. */
 export const TextField = forwardRef<TextInput, Props>(function TextField(
-  { label, helper, error, right, editable = true, className, ...rest },
+  { label, helper, error, right, editable = true, className, onFocus, onBlur, ...rest },
   ref,
 ) {
+  const [focused, setFocused] = useState(false);
+  const border = error ? 'border-danger' : focused ? 'border-ink' : 'border-surface-line';
+
   return (
     <View className={className}>
+      <Text className="mb-1.5 ml-1 font-medium text-sm text-ink-muted">{label}</Text>
       <View
-        className={`min-h-[56px] flex-row items-center rounded-2xl border px-4 ${
-          error ? 'border-danger' : 'border-ink-muted/60 dark:border-ink-mutedDark/60'
-        } ${editable ? '' : 'opacity-50'}`}
+        className={`min-h-[54px] flex-row items-center rounded-block border-hair bg-surface-card px-4 ${border} ${
+          editable ? '' : 'opacity-50'
+        }`}
       >
-        <Text className="absolute -top-2.5 left-3 bg-surface px-1 text-sm text-ink-muted dark:bg-surface-dark dark:text-ink-mutedDark">
-          {label}
-        </Text>
         <TextInput
           ref={ref}
           editable={editable}
           accessibilityLabel={label}
-          placeholderTextColor="#9AA0A6"
-          className="flex-1 py-3 font-sans text-base text-ink dark:text-ink-dark"
+          placeholderTextColor={ink.faint}
+          className="flex-1 py-3 font-sans text-base text-ink"
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
           {...rest}
         />
         {right}
       </View>
       {error || helper ? (
-        <Text
-          className={`ml-2 mt-1 text-xs ${error ? 'text-danger' : 'text-ink-muted dark:text-ink-mutedDark'}`}
-        >
+        <Text className={`ml-1 mt-1 font-sans text-xs ${error ? 'text-danger' : 'text-ink-muted'}`}>
           {error ?? helper}
         </Text>
       ) : null}

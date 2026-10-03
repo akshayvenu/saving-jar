@@ -1,12 +1,17 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 
-import { jar as jarColors } from '@/theme/colors';
+import { ink, jar as jarColors } from '@/theme/colors';
 import type { JarColor } from '@/types';
+
+import { Button } from './button';
 
 const COLORS = Object.keys(jarColors) as JarColor[];
 
 const ROWS = [COLORS.slice(0, 4), COLORS.slice(4)];
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 interface Props {
   value: JarColor;
@@ -22,17 +27,19 @@ export function ColorField({ value, onChange, label = 'Colour', className }: Pro
 
   return (
     <View className={className}>
+      <Text className="mb-1.5 ml-1 font-medium text-sm text-ink-muted">{label}</Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${value}`}
         onPress={() => setOpen(true)}
-        className="min-h-[56px] flex-row items-center justify-between rounded-2xl border border-ink-muted/60 px-4 active:bg-black/5 dark:border-ink-mutedDark/60"
+        className="min-h-[54px] flex-row items-center gap-3 rounded-block border-hair border-surface-line bg-surface-card px-4 active:border-ink"
       >
-        <Text className="text-base text-ink dark:text-ink-dark">{label}</Text>
         <View
           style={{ backgroundColor: jarColors[value] }}
-          className="h-8 w-8 rounded-lg border border-ink/30"
+          className="h-7 w-7 rounded-lg border-hair border-ink"
         />
+        <Text className="flex-1 font-sans text-base text-ink">{capitalize(value)}</Text>
+        <MaterialCommunityIcons name="palette-outline" size={20} color={ink.muted} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
@@ -43,44 +50,56 @@ export function ColorField({ value, onChange, label = 'Colour', className }: Pro
         >
           <Pressable
             onPress={() => {}}
-            className="w-full rounded-3xl bg-surface p-6 dark:bg-surface-cardDark"
+            style={{ boxShadow: `5px 5px 0px ${ink.DEFAULT}` }}
+            className="w-full rounded-[28px] border-hair border-ink bg-surface p-5"
           >
-            <Text accessibilityRole="header" className="text-3xl text-ink dark:text-ink-dark">
+            <Text accessibilityRole="header" className="font-display-semibold text-2xl text-ink">
               Pick a colour
             </Text>
-            <Text className="mb-4 mt-4 text-base text-ink-muted dark:text-ink-mutedDark">
-              Standard colours
+            <Text className="mb-4 mt-1 font-sans text-sm text-ink-muted">
+              Used for the card and its fill
             </Text>
             <View className="gap-3">
               {ROWS.map((row, i) => (
                 <View key={i} className="flex-row gap-3">
-                  {row.map((c) => (
-                    <Pressable
-                      key={c}
-                      accessibilityRole="radio"
-                      accessibilityLabel={c}
-                      accessibilityState={{ selected: c === value }}
-                      onPress={() => {
-                        onChange(c);
-                        close();
-                      }}
-                      style={{ backgroundColor: jarColors[c], flex: 1, aspectRatio: 1 }}
-                      className={`rounded-2xl active:opacity-80 ${
-                        c === value ? 'border-[3px] border-ink' : 'border border-ink/20'
-                      }`}
-                    />
-                  ))}
+                  {row.map((c) => {
+                    const selected = c === value;
+                    return (
+                      <Pressable
+                        key={c}
+                        accessibilityRole="radio"
+                        accessibilityLabel={c}
+                        accessibilityState={{ selected }}
+                        onPress={() => {
+                          onChange(c);
+                          close();
+                        }}
+                        style={{
+                          backgroundColor: jarColors[c],
+                          flex: 1,
+                          aspectRatio: 1,
+                          boxShadow: selected ? `3px 3px 0px ${ink.DEFAULT}` : undefined,
+                        }}
+                        className={`items-center justify-center rounded-2xl border-ink active:opacity-80 ${
+                          selected ? 'border-2' : 'border-hair'
+                        }`}
+                      >
+                        {selected && (
+                          <MaterialCommunityIcons name="check-bold" size={22} color={ink.DEFAULT} />
+                        )}
+                      </Pressable>
+                    );
+                  })}
                 </View>
               ))}
             </View>
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              title="Done"
+              variant="secondary"
+              compact
               onPress={close}
-              hitSlop={8}
-              className="mt-6 self-end px-2 py-1 active:opacity-60"
-            >
-              <Text className="font-medium text-lg text-accent-blue">Close</Text>
-            </Pressable>
+              className="mt-5 self-end"
+            />
           </Pressable>
         </Pressable>
       </Modal>

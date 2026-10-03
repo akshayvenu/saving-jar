@@ -22,7 +22,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { TransactionRow } from '@/components/history/transaction-row';
+import { Button } from '@/components/ui/button';
+import { SheetHandle } from '@/components/ui/sheet-frame';
+import { formatMoney } from '@/lib/format';
 import { useJarStore } from '@/store/useJarStore';
+import { ink } from '@/theme/colors';
 import type { Jar } from '@/types';
 
 interface Props {
@@ -101,7 +105,7 @@ export function HistorySheet({ jar, onClose }: Props) {
   const onLayout = (e: LayoutChangeEvent) => height.set(e.nativeEvent.layout.height);
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents={jar ? 'auto' : 'none'}>
+    <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents={jar ? 'auto' : 'none'}>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000' }, backdropStyle]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close" />
       </Animated.View>
@@ -114,50 +118,53 @@ export function HistorySheet({ jar, onClose }: Props) {
         ]}
       >
         <View
-          className="rounded-t-3xl bg-surface dark:bg-surface-cardDark"
-          style={{ flexShrink: 1, paddingBottom: insets.bottom }}
+          className="rounded-t-[32px] border-x-hair border-t-hair border-ink bg-surface"
+          style={{ flexShrink: 1, paddingBottom: Math.max(insets.bottom, 12) }}
         >
           <GestureDetector gesture={pan}>
-            <View className="items-center pb-4 pt-3">
-              <View className="h-1.5 w-10 rounded-full bg-ink-muted/40" />
+            <View>
+              <SheetHandle />
             </View>
           </GestureDetector>
 
-          <View className="border-b border-ink-muted/30 px-6 pb-4 pt-2">
-            <Text
-              accessibilityRole="header"
-              className="font-bold text-2xl text-ink dark:text-ink-dark"
-            >
-              History
-            </Text>
-            <Text className="mt-1 text-sm text-ink-muted dark:text-ink-mutedDark">
-              {txs.length} {txs.length === 1 ? 'entry' : 'entries'}
-            </Text>
+          <View className="flex-row items-end justify-between px-5 pb-4">
+            <View className="flex-1">
+              <Text accessibilityRole="header" className="font-display-semibold text-2xl text-ink">
+                History
+              </Text>
+              <Text numberOfLines={1} className="font-sans text-sm text-ink-muted">
+                {shown.name} · {txs.length} {txs.length === 1 ? 'entry' : 'entries'}
+              </Text>
+            </View>
+            <View className="rounded-full bg-ink px-3 py-1">
+              <Text className="font-display-semibold text-sm text-white">
+                {formatMoney(shown.saved, shown.currency)}
+              </Text>
+            </View>
           </View>
 
-          <FlatList
-            data={txs}
-            keyExtractor={(t) => t.id}
+          <View
             style={{ flexShrink: 1 }}
-            renderItem={({ item }) => <TransactionRow tx={item} currency={shown.currency} />}
-            ListEmptyComponent={
-              <View className="items-center px-8 py-12">
-                <MaterialCommunityIcons name="history" size={64} color="#9AA0A6" />
-                <Text className="mt-3 text-center text-lg text-ink-muted dark:text-ink-mutedDark">
-                  No transactions yet.
-                </Text>
-              </View>
-            }
-          />
+            className="mx-4 overflow-hidden rounded-jar border-hair border-ink bg-surface-card"
+          >
+            <FlatList
+              data={txs}
+              keyExtractor={(t) => t.id}
+              style={{ flexShrink: 1 }}
+              renderItem={({ item }) => <TransactionRow tx={item} currency={shown.currency} />}
+              ListEmptyComponent={
+                <View className="items-center px-8 py-12">
+                  <MaterialCommunityIcons name="history" size={48} color={ink.faint} />
+                  <Text className="mt-3 text-center font-sans text-base text-ink-muted">
+                    No transactions yet.
+                  </Text>
+                </View>
+              }
+            />
+          </View>
 
-          <View className="items-end border-t border-ink-muted/30 px-6">
-            <Pressable
-              accessibilityRole="button"
-              onPress={onClose}
-              className="min-h-[52px] justify-center px-2 active:opacity-70"
-            >
-              <Text className="text-lg text-brand">Close</Text>
-            </Pressable>
+          <View className="px-4 pt-3">
+            <Button title="Close" variant="secondary" compact onPress={onClose} />
           </View>
         </View>
       </Animated.View>

@@ -1,12 +1,12 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Text, View } from 'react-native';
+import { Alert, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HistorySheet } from '@/components/history/history-sheet';
 import { AmountSheet, type AmountMode } from '@/components/home/amount-sheet';
 import { JarCard } from '@/components/home/jar-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { useJarStore } from '@/store/useJarStore';
@@ -45,21 +45,22 @@ export default function ArchiveScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Archive" />
+      <ScreenHeader
+        title="Archive"
+        eyebrow={`${archived.length} ${archived.length === 1 ? 'jar' : 'jars'}`}
+      />
       <FlatList
         data={archived}
         keyExtractor={(j) => j.id}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: 8 }}
         ListEmptyComponent={
-          <View className="items-center px-8 pt-20">
-            <MaterialCommunityIcons name="archive-outline" size={72} color="#9AA0A6" />
-            <Text className="mt-4 text-center text-lg text-ink-muted dark:text-ink-mutedDark">
-              No archived jars.
-            </Text>
-          </View>
+          <EmptyState
+            icon="archive-outline"
+            text="No archived jars. Archive a jar to tuck it away here."
+          />
         }
         renderItem={({ item }) => (
-          <View className="px-6">
+          <View className="px-5">
             <JarCard
               jar={item}
               onAdd={onAdd}

@@ -2,6 +2,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, Text, View } from 'react-native';
 
+import { ink } from '@/theme/colors';
+
+import { SheetFrame } from './sheet-frame';
+
 export interface Option<T extends string> {
   value: T;
   label: string;
@@ -31,49 +35,61 @@ export function SelectField<T extends string>({
 
   return (
     <View className={className}>
+      <Text className="mb-1.5 ml-1 font-medium text-sm text-ink-muted">{label}</Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${current}`}
         disabled={disabled}
         onPress={() => setOpen(true)}
-        className={`min-h-[56px] flex-row items-center justify-between rounded-2xl border border-ink-muted/60 px-4 dark:border-ink-mutedDark/60 ${disabled ? 'opacity-50' : 'active:bg-black/5'}`}
+        className={`min-h-[54px] flex-row items-center justify-between rounded-block border-hair border-surface-line bg-surface-card px-4 ${
+          disabled ? 'opacity-50' : 'active:border-ink'
+        }`}
       >
-        <Text className="text-base text-ink dark:text-ink-dark">
-          {label}: {current}
+        <Text numberOfLines={1} className="flex-1 font-sans text-base text-ink">
+          {current}
         </Text>
-        {!disabled && <MaterialCommunityIcons name="chevron-down" size={22} color="#5F6368" />}
+        {!disabled && (
+          <View className="h-7 w-7 items-center justify-center rounded-full bg-surface">
+            <MaterialCommunityIcons name="chevron-down" size={20} color={ink.DEFAULT} />
+          </View>
+        )}
       </Pressable>
-      {helper ? (
-        <Text className="ml-2 mt-1 text-xs text-ink-muted dark:text-ink-mutedDark">{helper}</Text>
-      ) : null}
+      {helper ? <Text className="ml-1 mt-1 font-sans text-xs text-ink-muted">{helper}</Text> : null}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable className="flex-1 justify-end bg-black/40" onPress={() => setOpen(false)}>
-          <View className="max-h-[60%] rounded-t-3xl bg-surface p-4 pb-8 dark:bg-surface-cardDark">
-            <Text className="mb-2 px-2 font-semibold text-lg text-ink dark:text-ink-dark">
-              {label}
-            </Text>
+          <SheetFrame title={label} className="max-h-[60%]">
             <FlatList
               data={options}
               keyExtractor={(o) => o.value}
-              renderItem={({ item }) => (
-                <Pressable
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: item.value === value }}
-                  onPress={() => {
-                    onChange(item.value);
-                    setOpen(false);
-                  }}
-                  className="min-h-[48px] flex-row items-center justify-between rounded-xl px-3 active:bg-black/5"
-                >
-                  <Text className="text-base text-ink dark:text-ink-dark">{item.label}</Text>
-                  {item.value === value && (
-                    <MaterialCommunityIcons name="check" size={20} color="#0F9D8A" />
-                  )}
-                </Pressable>
-              )}
+              contentContainerClassName="gap-2"
+              renderItem={({ item }) => {
+                const selected = item.value === value;
+                return (
+                  <Pressable
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => {
+                      onChange(item.value);
+                      setOpen(false);
+                    }}
+                    className={`min-h-[52px] flex-row items-center justify-between rounded-2xl border-hair px-4 ${
+                      selected
+                        ? 'border-ink bg-ink'
+                        : 'border-surface-line bg-surface-card active:border-ink'
+                    }`}
+                  >
+                    <Text
+                      className={`text-base ${selected ? 'font-semibold text-white' : 'font-sans text-ink'}`}
+                    >
+                      {item.label}
+                    </Text>
+                    {selected && <MaterialCommunityIcons name="check" size={20} color="#FFFFFF" />}
+                  </Pressable>
+                );
+              }}
             />
-          </View>
+          </SheetFrame>
         </Pressable>
       </Modal>
     </View>

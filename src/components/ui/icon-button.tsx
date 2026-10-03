@@ -1,13 +1,24 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, type PressableProps } from 'react-native';
 
+import { ink } from '@/theme/colors';
+
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+type Tone = 'plain' | 'card' | 'ink';
+
+const tone: Record<Tone, string> = {
+  plain: 'active:bg-black/10',
+  card: 'bg-surface-card border-hair border-ink active:bg-surface-sunken',
+  ink: 'bg-ink active:opacity-80',
+};
 
 interface Props extends Omit<PressableProps, 'children'> {
   icon: IconName;
   label: string;
   size?: number;
   color?: string;
+  /** `plain` is transparent, `card` is an outlined white chip, `ink` is solid black. */
+  variant?: Tone;
   className?: string;
 }
 
@@ -15,8 +26,9 @@ interface Props extends Omit<PressableProps, 'children'> {
 export function IconButton({
   icon,
   label,
-  size = 24,
-  color = '#1B1B1B',
+  size = 22,
+  color,
+  variant = 'plain',
   className,
   ...rest
 }: Props) {
@@ -25,10 +37,14 @@ export function IconButton({
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={6}
-      className={`h-11 w-11 items-center justify-center rounded-full active:bg-black/10 ${className ?? ''}`}
+      className={`h-11 w-11 items-center justify-center rounded-full ${tone[variant]} ${className ?? ''}`}
       {...rest}
     >
-      <MaterialCommunityIcons name={icon} size={size} color={color} />
+      <MaterialCommunityIcons
+        name={icon}
+        size={size}
+        color={color ?? (variant === 'ink' ? '#FFFFFF' : ink.DEFAULT)}
+      />
     </Pressable>
   );
 }

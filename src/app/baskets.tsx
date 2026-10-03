@@ -1,14 +1,17 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Alert, FlatList, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { ColorField } from '@/components/ui/color-swatches';
+import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
+import { SectionLabel } from '@/components/ui/section-label';
 import { TextField } from '@/components/ui/text-field';
 import { useJarStore } from '@/store/useJarStore';
-import { jar as jarColors } from '@/theme/colors';
+import { ink, jar as jarColors } from '@/theme/colors';
 import type { JarColor } from '@/types';
 
 export default function BasketsScreen() {
@@ -42,8 +45,11 @@ export default function BasketsScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Baskets" />
-      <View className="gap-3 px-5 pb-4 pt-2">
+      <ScreenHeader title="Baskets" eyebrow="Manage" />
+      <View
+        style={{ boxShadow: `4px 4px 0px ${ink.DEFAULT}` }}
+        className="mx-5 mb-2 mt-2 gap-4 rounded-jar border-hair border-ink bg-surface-card p-4"
+      >
         <TextField
           label={editingId ? 'Rename basket' : 'New basket'}
           value={name}
@@ -52,30 +58,54 @@ export default function BasketsScreen() {
           returnKeyType="done"
           onSubmitEditing={submit}
         />
-        <ColorField className="mb-3" value={color} onChange={setColor} />
-        <Button
-          title={editingId ? 'Save basket' : 'Add basket'}
-          onPress={submit}
-          disabled={!name.trim()}
-        />
+        <ColorField value={color} onChange={setColor} />
+        <View className="flex-row gap-3">
+          {editingId && (
+            <Button title="Cancel" variant="secondary" onPress={reset} className="flex-1" />
+          )}
+          <Button
+            title={editingId ? 'Save basket' : 'Add basket'}
+            icon={editingId ? 'check' : 'plus'}
+            onPress={submit}
+            disabled={!name.trim()}
+            className="flex-[2]"
+          />
+        </View>
       </View>
       <FlatList
         data={baskets}
         keyExtractor={(b) => b.id}
         contentContainerStyle={{ paddingBottom: 40 }}
+        ListHeaderComponent={
+          baskets.length > 0 ? (
+            <View className="px-5">
+              <SectionLabel meta={String(baskets.length)}>Your baskets</SectionLabel>
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
-          <Text className="px-8 pt-10 text-center text-ink-muted dark:text-ink-mutedDark">
-            Baskets group related jars. Create one above.
-          </Text>
+          <EmptyState
+            icon="basket-plus-outline"
+            text="Baskets group related jars. Create one above."
+          />
         }
         renderItem={({ item }) => (
           <View
-            style={{ backgroundColor: jarColors[item.color] }}
-            className="mx-4 mb-3 flex-row items-center rounded-2xl p-3 pl-4"
+            className={`mx-5 mb-2.5 flex-row items-center gap-3 rounded-block border-ink bg-surface-card p-2.5 pl-3 ${
+              editingId === item.id ? 'border-2' : 'border-hair'
+            }`}
           >
+            <View
+              style={{ backgroundColor: jarColors[item.color] }}
+              className="h-11 w-11 items-center justify-center rounded-2xl border-hair border-ink"
+            >
+              <MaterialCommunityIcons name="basket-outline" size={20} color={ink.DEFAULT} />
+            </View>
             <View className="flex-1">
-              <Text className="text-lg text-ink">{item.name}</Text>
-              <Text className="text-sm text-ink/70">
+              <Text numberOfLines={1} className="font-display-semibold text-base text-ink">
+                {item.name}
+              </Text>
+              <Text className="font-sans text-sm text-ink-muted">
                 {jars.filter((j) => j.basketId === item.id).length} jars
               </Text>
             </View>
