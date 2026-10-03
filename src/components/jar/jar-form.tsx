@@ -6,12 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { ColorField } from '@/components/ui/color-swatches';
+import { Hatch } from '@/components/ui/hatch';
 import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
 import { CURRENCIES, formatDate, parseAmount, toMajor } from '@/lib/format';
-import { CATEGORY_ORDER, categoryLabel, knownAccounts } from '@/store/selectors';
+import { CATEGORY_ICON, CATEGORY_ORDER, categoryLabel, knownAccounts } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
+import { ink, jar as jarColors } from '@/theme/colors';
 import type { Category, CurrencyCode, Jar, JarColor, JarInput } from '@/types';
 
 interface Props {
@@ -104,12 +106,23 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
         contentContainerClassName="px-5 pb-8 pt-2"
         showsVerticalScrollIndicator={false}
       >
-        <Text
-          accessibilityRole="header"
-          className="mb-6 mt-4 font-bold text-3xl text-ink dark:text-ink-dark"
-        >
-          {title}
-        </Text>
+        <View className="mb-6 mt-5 flex-row items-center justify-between">
+          <View className="flex-1">
+            <Text accessibilityRole="header" className="font-display-bold text-[32px] text-ink">
+              {title}
+            </Text>
+            <Text className="font-sans text-sm text-ink-muted">
+              {isEdit ? 'Update the details of this jar' : 'Set aside money for something'}
+            </Text>
+          </View>
+          <View
+            style={{ backgroundColor: jarColors[color] }}
+            className="h-14 w-14 items-center justify-center overflow-hidden rounded-[20px] border-hair border-ink"
+          >
+            <Hatch gap={6} strokeWidth={1} color="rgba(18,18,18,0.25)" />
+            <MaterialCommunityIcons name={CATEGORY_ICON[category]} size={26} color={ink.DEFAULT} />
+          </View>
+        </View>
 
         <TextField
           label="Jar name"
@@ -148,7 +161,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
             {accountChips.map((a) => (
               <View
                 key={a}
-                className="min-h-[36px] flex-row items-center rounded-full border border-ink-muted/60 pl-3"
+                className="min-h-[36px] flex-row items-center rounded-full border-hair border-ink bg-surface-card pl-3"
               >
                 <Pressable
                   accessibilityRole="button"
@@ -156,7 +169,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
                   onPress={() => setAccount(a)}
                   className="justify-center py-1.5"
                 >
-                  <Text className="text-sm text-ink dark:text-ink-dark">{a}</Text>
+                  <Text className="font-sans text-sm text-ink">{a}</Text>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -165,7 +178,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
                   onPress={() => hideAccount(a)}
                   className="px-2 py-1.5"
                 >
-                  <MaterialCommunityIcons name="close" size={16} color="#5F6368" />
+                  <MaterialCommunityIcons name="close" size={16} color={ink.muted} />
                 </Pressable>
               </View>
             ))}
@@ -209,16 +222,19 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           maxLength={120}
         />
 
+        <Text className="mb-1.5 ml-1 mt-4 font-medium text-sm text-ink-muted">
+          Deadline (Optional)
+        </Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Pick deadline"
           onPress={() => setShowPicker(true)}
-          className="mt-4 min-h-[56px] flex-row items-center justify-between rounded-2xl border border-ink-muted/60 px-4 active:bg-black/5"
+          className="min-h-[54px] flex-row items-center justify-between rounded-block border-hair border-surface-line bg-surface-card px-4 active:border-ink"
         >
-          <Text className="text-base text-ink dark:text-ink-dark">
-            {deadline ? formatDate(deadline.toISOString()) : 'No deadline yet (Optional)'}
+          <Text className={`font-sans text-base ${deadline ? 'text-ink' : 'text-ink-faint'}`}>
+            {deadline ? formatDate(deadline.toISOString()) : 'No deadline yet'}
           </Text>
-          <MaterialCommunityIcons name="calendar-month-outline" size={24} color="#5F6368" />
+          <MaterialCommunityIcons name="calendar-month-outline" size={22} color={ink.DEFAULT} />
         </Pressable>
         {showPicker && (
           <DateTimePicker
@@ -243,10 +259,14 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
 
       <View
         style={{ paddingBottom: Math.max(insets.bottom, 12) }}
-        className="flex-row items-center justify-end gap-3 border-t border-black/10 px-5 pt-3"
+        className="flex-row items-center gap-3 border-t-hair border-ink bg-surface px-5 pt-3"
       >
-        <Button title="Cancel" variant="ghost" onPress={onCancel} />
-        <Button title="Save" onPress={submit} className="min-w-[120px]" />
+        <Button title="Cancel" variant="secondary" onPress={onCancel} className="flex-1" />
+        <Button
+          title={isEdit ? 'Save changes' : 'Create jar'}
+          onPress={submit}
+          className="flex-[2]"
+        />
       </View>
     </KeyboardAvoidingView>
   );

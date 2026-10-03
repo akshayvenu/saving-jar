@@ -1,4 +1,4 @@
-const { jar, brand, accent } = require('./src/theme/colors');
+const { ink, surface, brand, jar, accent, danger, success } = require('./src/theme/colors');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -11,19 +11,23 @@ module.exports = {
         brand,
         jar,
         accent,
-        surface: { DEFAULT: '#F6F6EF', card: '#FFFFFF', dark: '#14161A', cardDark: '#1F2228' },
-        ink: { DEFAULT: '#1B1B1B', muted: '#5F6368', dark: '#F2F2F2', mutedDark: '#A3A8AF' },
-        danger: '#E06666',
-        success: '#7CC9A0',
+        surface: { ...surface, dark: '#14161A', cardDark: '#1F2228' },
+        ink: { ...ink, dark: '#F2F2F2', mutedDark: '#A3A8AF' },
+        danger,
+        success,
       },
       fontFamily: {
-        sans: ['Jost_400Regular'],
-        medium: ['Jost_500Medium'],
-        semibold: ['Jost_600SemiBold'],
-        bold: ['Jost_700Bold'],
-        extrabold: ['Jost_800ExtraBold'],
+        sans: ['DMSans_400Regular'],
+        medium: ['DMSans_500Medium'],
+        semibold: ['DMSans_600SemiBold'],
+        bold: ['DMSans_700Bold'],
+        extrabold: ['DMSans_800ExtraBold'],
+        display: ['SpaceGrotesk_500Medium'],
+        'display-semibold': ['SpaceGrotesk_600SemiBold'],
+        'display-bold': ['SpaceGrotesk_700Bold'],
       },
-      borderRadius: { jar: 28 },
+      borderRadius: { jar: 28, block: 22 },
+      borderWidth: { hair: '1.5px' },
     },
   },
   plugins: [],

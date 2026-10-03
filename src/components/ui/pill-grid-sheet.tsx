@@ -1,31 +1,53 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
+
+import { SheetFrame } from './sheet-frame';
 
 interface PillProps {
   label: string;
   onPress: () => void;
-  /** Fill colour; unselected pills use the surface colour unless `tint` is set. */
+  /** Swatch shown at the start of the pill. */
   color?: string;
+  /** Optional trailing count, e.g. jars in a basket. */
+  count?: number;
+  icon?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
   selected?: boolean;
   full?: boolean;
 }
 
-/** Outlined, colourful choice button shared by the basket and sort sheets. */
-export function ChoicePill({ label, onPress, color, selected, full }: PillProps) {
+/** Outlined choice tile shared by the basket and sort sheets; selected = solid ink. */
+export function ChoicePill({ label, onPress, color, count, icon, selected, full }: PillProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected }}
       onPress={onPress}
-      style={color ? { backgroundColor: color } : undefined}
-      className={`min-h-[52px] items-center justify-center rounded-2xl px-3 active:opacity-80 ${
-        full ? 'w-full' : 'w-[48%]'
-      } ${color ? '' : 'bg-surface dark:bg-surface-dark'} ${
-        selected ? 'border-[3px] border-ink' : 'border-2 border-ink/70'
-      }`}
+      className={`min-h-[54px] flex-row items-center gap-2.5 rounded-2xl border-hair border-ink px-3 ${
+        full ? 'w-full' : 'w-[48.5%]'
+      } ${selected ? 'bg-ink' : 'bg-surface-card active:bg-surface-sunken'}`}
     >
-      <Text numberOfLines={1} className="text-center text-lg text-ink">
+      {color ? (
+        <View
+          style={{ backgroundColor: color }}
+          className={`h-6 w-6 rounded-lg border-hair ${selected ? 'border-white' : 'border-ink'}`}
+        />
+      ) : null}
+      {icon ? (
+        <MaterialCommunityIcons name={icon} size={20} color={selected ? '#FFFFFF' : '#121212'} />
+      ) : null}
+      <Text
+        numberOfLines={1}
+        className={`flex-1 font-medium text-base ${selected ? 'text-white' : 'text-ink'}`}
+      >
         {label}
       </Text>
+      {count != null ? (
+        <Text
+          className={`font-display-semibold text-sm ${selected ? 'text-white/70' : 'text-ink-muted'}`}
+        >
+          {count}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
@@ -33,11 +55,12 @@ export function ChoicePill({ label, onPress, color, selected, full }: PillProps)
 interface SheetProps {
   visible: boolean;
   title: string;
+  subtitle?: string;
   onClose: () => void;
   children: React.ReactNode;
 }
 
-export function PillSheet({ visible, title, onClose, children }: SheetProps) {
+export function PillSheet({ visible, title, subtitle, onClose, children }: SheetProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable
@@ -45,18 +68,9 @@ export function PillSheet({ visible, title, onClose, children }: SheetProps) {
         onPress={onClose}
         accessibilityLabel="Close"
       >
-        <Pressable
-          onPress={() => {}}
-          className="rounded-t-3xl bg-surface p-4 pb-10 dark:bg-surface-cardDark"
-        >
-          <Text
-            accessibilityRole="header"
-            className="mb-4 px-2 font-semibold text-2xl text-ink dark:text-ink-dark"
-          >
-            {title}
-          </Text>
-          <View className="flex-row flex-wrap justify-between gap-y-3">{children}</View>
-        </Pressable>
+        <SheetFrame title={title} subtitle={subtitle}>
+          <View className="flex-row flex-wrap justify-between gap-y-2.5">{children}</View>
+        </SheetFrame>
       </Pressable>
     </Modal>
   );

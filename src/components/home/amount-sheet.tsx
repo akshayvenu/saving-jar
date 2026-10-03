@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -22,7 +23,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { Button } from '@/components/ui/button';
+import { SheetHandle } from '@/components/ui/sheet-frame';
 import { formatMoney, parseAmount } from '@/lib/format';
+import { ink } from '@/theme/colors';
 import type { Jar } from '@/types';
 
 export type AmountMode = 'add' | 'minus';
@@ -142,7 +145,7 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
   };
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents={jar ? 'auto' : 'none'}>
+    <View style={[StyleSheet.absoluteFill, { zIndex: 100 }]} pointerEvents={jar ? 'auto' : 'none'}>
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#000' }, backdropStyle]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Close" />
       </Animated.View>
@@ -152,61 +155,80 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
         style={[{ position: 'absolute', left: 0, right: 0, bottom: 0 }, sheetStyle]}
       >
         <View
-          className="rounded-t-3xl bg-surface px-5 dark:bg-surface-cardDark"
+          className="rounded-t-[32px] border-x-hair border-t-hair border-ink bg-surface px-5"
           style={{ paddingBottom: insets.bottom + 16 }}
         >
           <GestureDetector gesture={pan}>
-            <View className="items-center pb-4 pt-3">
-              <View className="h-1.5 w-10 rounded-full bg-ink-muted/40" />
+            <View>
+              <SheetHandle />
             </View>
           </GestureDetector>
 
-          <Text className="font-bold text-2xl text-ink dark:text-ink-dark">
-            {isAdd ? 'Add to' : 'Take from'} {shown.name}
-          </Text>
-          <Text className="mt-1 text-ink-muted dark:text-ink-mutedDark">
-            Balance: {formatMoney(shown.saved, shown.currency)}
-          </Text>
+          <View className="flex-row items-center gap-3">
+            <View
+              className={`h-11 w-11 items-center justify-center rounded-2xl border-hair border-ink ${
+                isAdd ? 'bg-ink' : 'bg-brand'
+              }`}
+            >
+              <MaterialCommunityIcons
+                name={isAdd ? 'arrow-bottom-left' : 'arrow-top-right'}
+                size={22}
+                color="#FFFFFF"
+              />
+            </View>
+            <View className="flex-1">
+              <Text numberOfLines={1} className="font-display-semibold text-2xl text-ink">
+                {isAdd ? 'Add to' : 'Take from'} {shown.name}
+              </Text>
+              <Text className="font-sans text-sm text-ink-muted">
+                Balance {formatMoney(shown.saved, shown.currency)}
+              </Text>
+            </View>
+          </View>
 
-          <TextInput
-            ref={inputRef}
-            value={value}
-            onChangeText={setValue}
-            keyboardType="decimal-pad"
-            placeholder="0"
-            accessibilityLabel="Amount"
-            className="my-4 rounded-2xl border border-ink-muted/60 px-4 py-3 text-center font-bold text-4xl text-ink dark:text-ink-dark"
-            style={{ fontFamily: 'Jost_700Bold' }}
-          />
-
-          <View className="mb-4 flex-row gap-2">
-            {QUICK.map((q) => (
-              <Pressable
-                key={q}
-                accessibilityRole="button"
-                accessibilityLabel={`Set amount to ${q}`}
-                onPress={() => setValue(String(q))}
-                className="flex-1 items-center rounded-full bg-brand-soft py-2.5 active:opacity-70"
-              >
-                <Text className="text-brand">
-                  {isAdd ? '+' : '−'}
-                  {q}
-                </Text>
-              </Pressable>
-            ))}
+          <View className="my-4 rounded-jar border-hair border-ink bg-surface-card px-4 pb-3 pt-2">
+            <TextInput
+              ref={inputRef}
+              value={value}
+              onChangeText={setValue}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor={ink.faint}
+              accessibilityLabel="Amount"
+              className="text-center text-[44px] text-ink"
+              style={{ fontFamily: 'SpaceGrotesk_700Bold' }}
+            />
+            <View className="flex-row gap-2">
+              {QUICK.map((q) => (
+                <Pressable
+                  key={q}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Set amount to ${q}`}
+                  onPress={() => setValue(String(q))}
+                  className="flex-1 items-center rounded-full border-hair border-ink bg-surface py-2 active:bg-surface-sunken"
+                >
+                  <Text className="font-display-semibold text-ink">
+                    {isAdd ? '+' : '−'}
+                    {q}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           <TextInput
             value={note}
             onChangeText={setNote}
-            placeholder="Note (optional)"
+            placeholder="Add a note (optional)"
+            placeholderTextColor={ink.faint}
             accessibilityLabel="Note"
-            className="mb-5 rounded-2xl border border-ink-muted/60 px-4 py-3 text-base text-ink dark:text-ink-dark"
+            className="mb-5 min-h-[52px] rounded-block border-hair border-surface-line bg-surface-card px-4 py-3 font-sans text-base text-ink"
           />
 
           <Button
-            title={isAdd ? 'Add' : 'Minus'}
-            variant={isAdd ? 'success' : 'danger'}
+            title={isAdd ? 'Add money' : 'Take out money'}
+            icon={isAdd ? 'arrow-bottom-left' : 'arrow-top-right'}
+            variant={isAdd ? 'primary' : 'accent'}
             disabled={invalid}
             onPress={submit}
           />

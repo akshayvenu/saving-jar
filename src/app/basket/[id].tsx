@@ -28,8 +28,14 @@ export default function BasketScreen() {
     <Screen>
       <ScreenHeader
         title={title}
+        eyebrow={`${scoped.length} ${scoped.length === 1 ? 'jar' : 'jars'}`}
         right={
-          dot ? <View style={{ backgroundColor: dot }} className="mr-3 h-5 w-5 rounded-full" /> : null
+          dot ? (
+            <View
+              style={{ backgroundColor: dot }}
+              className="h-9 w-9 rounded-xl border-hair border-ink"
+            />
+          ) : null
         }
       />
       <JarList

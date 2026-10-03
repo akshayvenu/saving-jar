@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { ChoicePill, PillSheet } from '@/components/ui/pill-grid-sheet';
 import { ALL_ID, UNSORTED_ID, jarsInBasket } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
-import { accent, jar as jarColors } from '@/theme/colors';
+import { jar as jarColors } from '@/theme/colors';
 
 interface Props {
   visible: boolean;
@@ -33,17 +33,19 @@ export function BasketSheet({ visible, currentId, onClose }: Props) {
   };
 
   return (
-    <PillSheet visible={visible} title="Baskets" onClose={onClose}>
+    <PillSheet visible={visible} title="Baskets" subtitle="Jump to a basket" onClose={onClose}>
       <ChoicePill
-        label={`All jars (${counts[ALL_ID]})`}
+        label="All jars"
+        count={counts[ALL_ID]}
+        icon="view-grid-outline"
         selected={currentId === ALL_ID}
-        color={accent.blue}
         onPress={() => go(ALL_ID)}
       />
       {baskets.map((b) => (
         <ChoicePill
           key={b.id}
-          label={`${b.name} (${counts[b.id]})`}
+          label={b.name}
+          count={counts[b.id]}
           selected={currentId === b.id}
           color={jarColors[b.color]}
           onPress={() => go(b.id)}
@@ -51,7 +53,8 @@ export function BasketSheet({ visible, currentId, onClose }: Props) {
       ))}
       {counts[UNSORTED_ID] > 0 && (
         <ChoicePill
-          label={`Unsorted (${counts[UNSORTED_ID]})`}
+          label="Unsorted"
+          count={counts[UNSORTED_ID]}
           selected={currentId === UNSORTED_ID}
           color={jarColors.slate}
           onPress={() => go(UNSORTED_ID)}
@@ -59,8 +62,8 @@ export function BasketSheet({ visible, currentId, onClose }: Props) {
       )}
       <ChoicePill
         full
-        label="+ New / Manage baskets"
-        color={accent.pink}
+        label="New / manage baskets"
+        icon="plus"
         onPress={() => {
           onClose();
           router.push('/baskets');
