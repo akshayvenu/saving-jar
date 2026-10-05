@@ -35,7 +35,16 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "./plugins/with-material3-theme"
+      "./plugins/with-material3-theme",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
