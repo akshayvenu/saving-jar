@@ -219,7 +219,7 @@ export const useJarStore = create<JarState>()(
       setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency }),
     }),
     {
-      name: 'saving jars-store',
+      name: 'jamjars-store',
       version: 3,
       storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {
