@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+    <rect width="1024" height="1024" fill="#E8E7E2"/>
+    <g transform="translate(-44.39999999999998 -65.20000000000005) scale(1.04)">
+  <defs>
+    <clipPath id="b"><path d="M262 430 Q262 340 352 340 H672 Q762 340 762 430 V760 Q762 850 672 850 H352 Q262 850 262 760 Z"/></clipPath>
+    <mask id="slot"><rect width="1024" height="1024" fill="#fff"/><rect x="422" y="262" width="180" height="30" rx="15" fill="#000"/></mask>
+    <pattern id="h" patternUnits="userSpaceOnUse" width="34" height="34" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="34" stroke="#121212" stroke-width="7"/>
+    </pattern>
+  </defs>
+  <g transform="translate(46 46)"><path d="M262 430 Q262 340 352 340 H672 Q762 340 762 430 V760 Q762 850 672 850 H352 Q262 850 262 760 Z" fill="#121212"/><path d="M318 214 H706 Q740 214 740 248 V306 Q740 340 706 340 H318 Q284 340 284 306 V248 Q284 214 318 214 Z" fill="#121212"/></g>
+  <path d="M262 430 Q262 340 352 340 H672 Q762 340 762 430 V760 Q762 850 672 850 H352 Q262 850 262 760 Z" fill="#FBFBF8"/>
+  <g clip-path="url(#b)">
+    <path d="M200 600 Q300 560 400 600 T600 600 T800 600 T1000 600 V900 H200 Z" fill="#9DCAFF"/>
+    <path d="M200 600 Q300 560 400 600 T600 600 T800 600 T1000 600 V900 H200 Z" fill="url(#h)"/>
+    <path d="M200 600 Q300 560 400 600 T600 600 T800 600 T1000 600 V900 H200 Z" fill="none" stroke="#121212" stroke-width="22"/>
+  </g>
+  <path d="M330 450 V520" stroke="#121212" stroke-width="22" stroke-linecap="round"/>
+  <path d="M262 430 Q262 340 352 340 H672 Q762 340 762 430 V760 Q762 850 672 850 H352 Q262 850 262 760 Z" fill="none" stroke="#121212" stroke-width="28"/>
+  <path d="M318 214 H706 Q740 214 740 248 V306 Q740 340 706 340 H318 Q284 340 284 306 V248 Q284 214 318 214 Z" fill="#F04E23" stroke="#121212" stroke-width="28" stroke-linejoin="round"/>
+  <rect x="422" y="262" width="180" height="30" rx="15" fill="#121212"/></g></svg>
