@@ -39,6 +39,7 @@
     "@types/react": "~19.2.2",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "subset-font": "^2.9.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -46,7 +47,17 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "icons": "node scripts/subset-icons.js"
+  },
+  "expo": {
+    "autolinking": {
+      "android": {
+        "exclude": [
+          "@expo/ui"
+        ]
+      }
+    }
   },
   "private": true
 }

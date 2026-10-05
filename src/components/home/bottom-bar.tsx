@@ -1,9 +1,11 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/ui/icon';
 import { IconButton } from '@/components/ui/icon-button';
+import { OptionSheet } from '@/components/ui/option-sheet';
 import { ink } from '@/theme/colors';
 
 interface Props {
@@ -37,32 +39,45 @@ export function BottomBar({ onBaskets, onSort, newJarBasketId }: Props) {
         />
         <IconButton icon="cog-outline" label="Settings" onPress={() => router.push('/settings')} />
       </View>
-      <CreateJarButton basketId={newJarBasketId} />
+      <CreateButton basketId={newJarBasketId} />
     </View>
   );
 }
 
-/** Brand-colored "+" tile that opens the new-jar form, optionally preselecting a basket. */
-export function CreateJarButton({ basketId }: { basketId?: string }) {
+/** Brand-colored "+" tile offering a new jar (optionally preselecting a basket) or a new basket. */
+export function CreateButton({ basketId }: { basketId?: string }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Create jar"
-      hitSlop={6}
-      onPress={() =>
-        router.push({
-          pathname: '/jar/new',
-          params: basketId ? { basketId } : {},
-        })
-      }
-      style={({ pressed }) => ({
-        boxShadow: pressed ? undefined : SHADOW,
-        transform: pressed ? [{ translateX: 2 }, { translateY: 2 }] : undefined,
-      })}
-      className="h-[58px] w-[58px] items-center justify-center rounded-[20px] border-hair border-ink bg-brand"
-    >
-      <MaterialCommunityIcons name="plus" size={30} color="#FFFFFF" />
-    </Pressable>
+    <>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Create"
+        hitSlop={6}
+        onPress={() => setOpen(true)}
+        style={({ pressed }) => ({
+          boxShadow: pressed ? undefined : SHADOW,
+          transform: pressed ? [{ translateX: 2 }, { translateY: 2 }] : undefined,
+        })}
+        className="h-[58px] w-[58px] items-center justify-center rounded-[20px] border-hair border-ink bg-brand"
+      >
+        <Icon name="plus" size={30} color="#FFFFFF" />
+      </Pressable>
+      <OptionSheet
+        visible={open}
+        title="Create"
+        options={[
+          { key: 'jar', label: 'New Jar', icon: 'beaker-plus-outline' },
+          { key: 'basket', label: 'New Basket', icon: 'basket-plus-outline' },
+        ]}
+        onClose={() => setOpen(false)}
+        onSelect={(key) => {
+          setOpen(false);
+          if (key === 'jar') {
+            router.push({ pathname: '/jar/new', params: basketId ? { basketId } : {} });
+          } else router.push({ pathname: '/baskets', params: { new: '1' } });
+        }}
+      />
+    </>
   );
 }
 
@@ -75,7 +90,7 @@ export function FloatingCreateButton() {
       style={{ paddingBottom: Math.max(insets.bottom, 12) + 4 }}
       className="absolute inset-x-0 bottom-0 items-end px-5"
     >
-      <CreateJarButton />
+      <CreateButton />
     </View>
   );
 }

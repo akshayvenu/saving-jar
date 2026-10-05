@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 
@@ -6,6 +5,7 @@ import { ink, jar as jarColors } from '@/theme/colors';
 import type { JarColor } from '@/types';
 
 import { Button } from './button';
+import { Icon } from './icon';
 
 const COLORS = Object.keys(jarColors) as JarColor[];
 
@@ -39,7 +39,7 @@ export function ColorField({ value, onChange, label = 'Colour', className }: Pro
           className="h-7 w-7 rounded-lg border-hair border-ink"
         />
         <Text className="flex-1 font-sans text-base text-ink">{capitalize(value)}</Text>
-        <MaterialCommunityIcons name="palette-outline" size={20} color={ink.muted} />
+        <Icon name="palette-outline" size={20} color={ink.muted} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
@@ -85,7 +85,7 @@ export function ColorField({ value, onChange, label = 'Colour', className }: Pro
                         }`}
                       >
                         {selected && (
-                          <MaterialCommunityIcons name="check-bold" size={22} color={ink.DEFAULT} />
+                          <Icon name="check-bold" size={22} color={ink.DEFAULT} />
                         )}
                       </Pressable>
                     );

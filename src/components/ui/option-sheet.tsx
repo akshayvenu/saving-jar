@@ -1,14 +1,14 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
 
 import { danger, ink } from '@/theme/colors';
 
+import { Icon } from './icon';
 import { SheetFrame } from './sheet-frame';
 
 export interface SheetOption {
   key: string;
   label: string;
-  icon?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon?: React.ComponentProps<typeof Icon>['name'];
   selected?: boolean;
   destructive?: boolean;
 }
@@ -47,7 +47,7 @@ export function OptionSheet({ visible, title, options, onSelect, onClose }: Prop
                       o.destructive ? 'bg-danger/10' : 'bg-surface'
                     }`}
                   >
-                    <MaterialCommunityIcons
+                    <Icon
                       name={o.icon}
                       size={20}
                       color={o.destructive ? danger : ink.DEFAULT}
@@ -60,7 +60,7 @@ export function OptionSheet({ visible, title, options, onSelect, onClose }: Prop
                   {o.label}
                 </Text>
                 {o.selected && (
-                  <MaterialCommunityIcons name="check" size={20} color={ink.DEFAULT} />
+                  <Icon name="check" size={20} color={ink.DEFAULT} />
                 )}
               </Pressable>
             ))}

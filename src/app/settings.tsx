@@ -1,9 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { BrandMark } from '@/components/ui/brand-mark';
+import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionLabel } from '@/components/ui/section-label';
@@ -34,9 +34,9 @@ export default function SettingsScreen() {
           onPress={() => router.push('/archive')}
           className="flex-row items-center gap-3 rounded-jar border-hair border-ink bg-surface-card p-4 active:bg-surface-sunken"
         >
-          <MaterialCommunityIcons name="archive-outline" size={22} color={ink.DEFAULT} />
+          <Icon name="archive-outline" size={22} color={ink.DEFAULT} />
           <Text className="flex-1 font-display-semibold text-base text-ink">Archived jars</Text>
-          <MaterialCommunityIcons name="chevron-right" size={20} color={ink.muted} />
+          <Icon name="chevron-right" size={20} color={ink.muted} />
         </Pressable>
         <View className="mt-12 items-center gap-3">
           <BrandMark size={14} />

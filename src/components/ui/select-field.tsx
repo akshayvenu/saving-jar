@@ -1,9 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { FlatList, Modal, Pressable, Text, View } from 'react-native';
 
 import { ink } from '@/theme/colors';
 
+import { Icon } from './icon';
 import { SheetFrame } from './sheet-frame';
 
 export interface Option<T extends string> {
@@ -50,7 +50,7 @@ export function SelectField<T extends string>({
         </Text>
         {!disabled && (
           <View className="h-7 w-7 items-center justify-center rounded-full bg-surface">
-            <MaterialCommunityIcons name="chevron-down" size={20} color={ink.DEFAULT} />
+            <Icon name="chevron-down" size={20} color={ink.DEFAULT} />
           </View>
         )}
       </Pressable>
@@ -84,7 +84,7 @@ export function SelectField<T extends string>({
                     >
                       {item.label}
                     </Text>
-                    {selected && <MaterialCommunityIcons name="check" size={20} color="#FFFFFF" />}
+                    {selected && <Icon name="check" size={20} color="#FFFFFF" />}
                   </Pressable>
                 );
               }}

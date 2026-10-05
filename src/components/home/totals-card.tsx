@@ -1,28 +1,40 @@
 import { Text, View } from 'react-native';
 
 import { formatMoney } from '@/lib/format';
-import { categoryLabel, type TotalRow } from '@/store/selectors';
+import type { TotalRow } from '@/store/selectors';
 
-/** Category/currency totals for a jar list, one equal-weight row each. */
+/** Saved and owed totals for a jar list, one equal-weight line each (per currency when mixed). */
 export function TotalsCard({ rows }: { rows: TotalRow[] }) {
-  if (rows.length === 0) return null;
+  const multi = rows.length > 1;
+  const lines = rows.flatMap((r) => {
+    const suffix = multi ? ` · ${r.currency}` : '';
+    return [
+      ...(r.saved > 0 || r.owed === 0
+        ? [{ key: `${r.key}:saved`, label: `Saved${suffix}`, amount: r.saved, currency: r.currency }]
+        : []),
+      ...(r.owed > 0
+        ? [{ key: `${r.key}:owed`, label: `Owed${suffix}`, amount: r.owed, currency: r.currency }]
+        : []),
+    ];
+  });
+  if (lines.length === 0) return null;
   return (
     <View className="mx-5 mt-1 overflow-hidden rounded-jar border-hair border-ink bg-surface-card">
-      {rows.map((r, i) => (
+      {lines.map((l, i) => (
         <View
-          key={r.key}
+          key={l.key}
           className={`flex-row items-center justify-between gap-3 px-4 py-3.5 ${
             i > 0 ? 'border-t-hair border-surface-line' : ''
           }`}
         >
           <Text numberOfLines={1} className="shrink font-sans text-sm text-ink-muted">
-            {categoryLabel(r.category)} · {r.currency}
+            {l.label}
           </Text>
           <Text
             numberOfLines={1}
             className="font-display-semibold text-lg tracking-tight text-ink"
           >
-            {formatMoney(r.total, r.currency)}
+            {formatMoney(l.amount, l.currency)}
           </Text>
         </View>
       ))}

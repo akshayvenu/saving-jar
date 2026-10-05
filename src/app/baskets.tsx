@@ -1,21 +1,25 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, FlatList, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { ColorField } from '@/components/ui/color-swatches';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Icon } from '@/components/ui/icon';
 import { IconButton } from '@/components/ui/icon-button';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionLabel } from '@/components/ui/section-label';
 import { TextField } from '@/components/ui/text-field';
+import { NO_BASKET_LABEL } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import { ink, jar as jarColors } from '@/theme/colors';
 import type { JarColor } from '@/types';
 
 export default function BasketsScreen() {
   const { baskets, jars, addBasket, renameBasket, recolorBasket, deleteBasket } = useJarStore();
+  // Opened from the "+" menu's "New Basket": jump straight into typing.
+  const { new: isNew } = useLocalSearchParams<{ new?: string }>();
   const [name, setName] = useState('');
   const [color, setColor] = useState<JarColor>(
     () => (Object.keys(jarColors) as JarColor[])[baskets.length % 8],
@@ -38,7 +42,7 @@ export default function BasketsScreen() {
   };
 
   const confirmDelete = (id: string, label: string) =>
-    Alert.alert('Delete basket?', `Jars in "${label}" will move to "Unsorted".`, [
+    Alert.alert('Delete basket?', `Jars in "${label}" will move to "${NO_BASKET_LABEL}".`, [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Delete', style: 'destructive', onPress: () => deleteBasket(id) },
     ]);
@@ -55,6 +59,7 @@ export default function BasketsScreen() {
           value={name}
           onChangeText={setName}
           maxLength={30}
+          autoFocus={isNew === '1'}
           returnKeyType="done"
           onSubmitEditing={submit}
         />
@@ -99,7 +104,7 @@ export default function BasketsScreen() {
               style={{ backgroundColor: jarColors[item.color] }}
               className="h-11 w-11 items-center justify-center rounded-2xl border-hair border-ink"
             >
-              <MaterialCommunityIcons name="basket-outline" size={20} color={ink.DEFAULT} />
+              <Icon name="basket-outline" size={20} color={ink.DEFAULT} />
             </View>
             <View className="flex-1">
               <Text numberOfLines={1} className="font-display-semibold text-base text-ink">

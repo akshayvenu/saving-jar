@@ -1,10 +1,11 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, Text, View, type PressableProps } from 'react-native';
 
 import { ink } from '@/theme/colors';
 
+import { Icon } from './icon';
+
 type Variant = 'primary' | 'accent' | 'secondary' | 'danger' | 'outline' | 'ghost';
-type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+type IconName = React.ComponentProps<typeof Icon>['name'];
 
 const container: Record<Variant, string> = {
   primary: 'bg-ink border-hair border-ink',
@@ -79,7 +80,7 @@ export function Button({
           <ActivityIndicator color={iconColor[variant]} />
         ) : (
           <>
-            {icon && <MaterialCommunityIcons name={icon} size={20} color={iconColor[variant]} />}
+            {icon && <Icon name={icon} size={20} color={iconColor[variant]} />}
             <Text className={`font-display-semibold text-base ${label[variant]}`}>{title}</Text>
           </>
         )}

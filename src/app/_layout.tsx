@@ -1,17 +1,14 @@
 import '../global.css';
 
-import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-  DMSans_800ExtraBold,
-} from '@expo-google-fonts/dm-sans';
-import {
-  SpaceGrotesk_500Medium,
-  SpaceGrotesk_600SemiBold,
-  SpaceGrotesk_700Bold,
-} from '@expo-google-fonts/space-grotesk';
+// Per-weight imports: the package index requires every weight's .ttf, which would all ship.
+import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
+import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
+import { DMSans_600SemiBold } from '@expo-google-fonts/dm-sans/600SemiBold';
+import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
+import { DMSans_800ExtraBold } from '@expo-google-fonts/dm-sans/800ExtraBold';
+import { SpaceGrotesk_500Medium } from '@expo-google-fonts/space-grotesk/500Medium';
+import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
+import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -22,6 +19,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/ui/icon';
 import { useJarStore } from '@/store/useJarStore';
 import { surface } from '@/theme/colors';
 
@@ -43,6 +41,7 @@ export default function RootLayout() {
     SpaceGrotesk_500Medium,
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
+    ...Icon.font,
   });
   const hasHydrated = useJarStore((s) => s.hasHydrated);
   const ready = fontsLoaded && hasHydrated;

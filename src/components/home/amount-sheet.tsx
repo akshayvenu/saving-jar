@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -23,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { SheetHandle } from '@/components/ui/sheet-frame';
 import { formatMoney, parseAmount } from '@/lib/format';
 import { ink } from '@/theme/colors';
@@ -170,7 +170,7 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
                 isAdd ? 'bg-ink' : 'bg-brand'
               }`}
             >
-              <MaterialCommunityIcons
+              <Icon
                 name={isAdd ? 'arrow-bottom-left' : 'arrow-top-right'}
                 size={22}
                 color="#FFFFFF"

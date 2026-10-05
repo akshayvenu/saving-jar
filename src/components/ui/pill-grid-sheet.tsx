@@ -1,6 +1,6 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
 
+import { Icon } from './icon';
 import { SheetFrame } from './sheet-frame';
 
 interface PillProps {
@@ -10,7 +10,7 @@ interface PillProps {
   color?: string;
   /** Optional trailing count, e.g. jars in a basket. */
   count?: number;
-  icon?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon?: React.ComponentProps<typeof Icon>['name'];
   selected?: boolean;
   full?: boolean;
 }
@@ -33,7 +33,7 @@ export function ChoicePill({ label, onPress, color, count, icon, selected, full 
         />
       ) : null}
       {icon ? (
-        <MaterialCommunityIcons name={icon} size={20} color={selected ? '#FFFFFF' : '#121212'} />
+        <Icon name={icon} size={20} color={selected ? '#FFFFFF' : '#121212'} />
       ) : null}
       <Text
         numberOfLines={1}

@@ -8,7 +8,7 @@ import { JarList } from '@/components/home/jar-list';
 import { SortSheet } from '@/components/home/sort-sheet';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
-import { ALL_ID, UNSORTED_ID, jarsInBasket } from '@/store/selectors';
+import { ALL_ID, NO_BASKET_LABEL, UNSORTED_ID, jarsInBasket } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import { jar as jarColors } from '@/theme/colors';
 
@@ -20,7 +20,8 @@ export default function BasketScreen() {
   const [basketsOpen, setBasketsOpen] = useState(false);
 
   const scoped = useMemo(() => jarsInBasket(jars, id), [jars, id]);
-  const title = id === ALL_ID ? 'All jars' : id === UNSORTED_ID ? 'Unsorted' : (basket?.name ?? '');
+  const title =
+    id === ALL_ID ? 'All jars' : id === UNSORTED_ID ? NO_BASKET_LABEL : (basket?.name ?? '');
   const dot = basket ? jarColors[basket.color] : id === UNSORTED_ID ? jarColors.slate : undefined;
   const real = !!basket;
 

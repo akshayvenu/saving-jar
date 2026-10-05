@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
@@ -7,14 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { ColorField } from '@/components/ui/color-swatches';
 import { Hatch } from '@/components/ui/hatch';
+import { Icon } from '@/components/ui/icon';
 import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
 import { CURRENCIES, formatDate, parseAmount, toMajor } from '@/lib/format';
-import { CATEGORY_ICON, CATEGORY_ORDER, categoryLabel, knownAccounts } from '@/store/selectors';
+import { NO_BASKET_LABEL, jarIcon, knownAccounts } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
-import { ink, jar as jarColors } from '@/theme/colors';
-import type { Category, CurrencyCode, Jar, JarColor, JarInput } from '@/types';
+import { brand, ink, jar as jarColors } from '@/theme/colors';
+import type { CurrencyCode, Jar, JarColor, JarInput } from '@/types';
 
 interface Props {
   title: string;
@@ -36,7 +36,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
 
   const [name, setName] = useState(initial?.name ?? '');
   const [basketId, setBasketId] = useState(initial?.basketId ?? initialBasketId ?? 'none');
-  const [category, setCategory] = useState<Category>(initial?.category ?? 'cash');
+  const [debt, setDebt] = useState(initial?.debt ?? false);
   const [account, setAccount] = useState(initial?.account ?? '');
   const [currency, setCurrency] = useState<CurrencyCode>(initial?.currency ?? defaultCurrency);
   const [saved, setSaved] = useState(initial ? String(toMajor(initial.saved)) : '');
@@ -51,7 +51,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
 
   const basketOptions = useMemo(
     () => [
-      { value: 'none', label: 'None' },
+      { value: 'none', label: NO_BASKET_LABEL },
       ...baskets.map((b) => ({ value: b.id, label: b.name })),
     ],
     [baskets],
@@ -85,7 +85,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
     onSave({
       name: name.trim(),
       basketId: basketId === 'none' ? null : basketId,
-      category,
+      debt: debt || undefined,
       account: account.trim() || undefined,
       currency,
       saved: savedMinor ?? 0,
@@ -120,7 +120,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
             className="h-14 w-14 items-center justify-center overflow-hidden rounded-[20px] border-hair border-ink"
           >
             <Hatch gap={6} strokeWidth={1} color="rgba(18,18,18,0.25)" />
-            <MaterialCommunityIcons name={CATEGORY_ICON[category]} size={26} color={ink.DEFAULT} />
+            <Icon name={jarIcon({ debt })} size={26} color={ink.DEFAULT} />
           </View>
         </View>
 
@@ -140,15 +140,26 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           onChange={setBasketId}
           className="mb-4"
         />
-        <SelectField
-          label="Category"
-          value={category}
-          options={CATEGORY_ORDER.map((c) => ({ value: c, label: categoryLabel(c) }))}
-          onChange={setCategory}
-          disabled={isEdit}
-          helper={isEdit ? 'Category is fixed after creation' : undefined}
-          className="mb-4"
-        />
+        <Pressable
+          accessibilityRole="switch"
+          accessibilityState={{ checked: debt }}
+          onPress={() => setDebt((v) => !v)}
+          className={`mb-4 min-h-[54px] flex-row items-center gap-3 rounded-block border-hair bg-surface-card px-4 py-3 ${
+            debt ? 'border-ink' : 'border-surface-line'
+          }`}
+        >
+          <View className="flex-1">
+            <Text className="font-medium text-base text-ink">This is a debt</Text>
+            <Text className="font-sans text-sm text-ink-muted">
+              Money you owe. Counted as owed, not added to Total saved.
+            </Text>
+          </View>
+          <Icon
+            name={debt ? 'toggle-switch' : 'toggle-switch-off-outline'}
+            size={40}
+            color={debt ? brand.DEFAULT : ink.muted}
+          />
+        </Pressable>
         <TextField
           label="Account (Optional)"
           value={account}
@@ -178,7 +189,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
                   onPress={() => hideAccount(a)}
                   className="px-2 py-1.5"
                 >
-                  <MaterialCommunityIcons name="close" size={16} color={ink.muted} />
+                  <Icon name="close" size={16} color={ink.muted} />
                 </Pressable>
               </View>
             ))}
@@ -196,7 +207,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
         <View className="flex-row gap-4">
           <TextField
             className="flex-1"
-            label="Saved"
+            label={debt ? 'Owed' : 'Saved'}
             value={saved}
             onChangeText={setSaved}
             keyboardType="decimal-pad"
@@ -234,7 +245,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           <Text className={`font-sans text-base ${deadline ? 'text-ink' : 'text-ink-faint'}`}>
             {deadline ? formatDate(deadline.toISOString()) : 'No deadline yet'}
           </Text>
-          <MaterialCommunityIcons name="calendar-month-outline" size={22} color={ink.DEFAULT} />
+          <Icon name="calendar-month-outline" size={22} color={ink.DEFAULT} />
         </Pressable>
         {showPicker && (
           <DateTimePicker

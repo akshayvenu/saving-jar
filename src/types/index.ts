@@ -1,4 +1,3 @@
-export type Category = 'cash' | 'investment' | 'cash_debt';
 export type CurrencyCode = 'INR' | 'EUR';
 export type JarColor = 'peach' | 'slate' | 'mint' | 'lavender' | 'butter' | 'sky' | 'rose' | 'sage';
 export type SortKey = 'manual' | 'name' | 'progress' | 'amount' | 'goal' | 'remaining' | 'deadline';
@@ -9,7 +8,8 @@ export interface Jar {
   id: string;
   name: string;
   basketId: string | null;
-  category: Category;
+  /** Money owed rather than held; kept out of "Total saved" and summed as "Owed". */
+  debt?: boolean;
   /** Where the money is held, e.g. a bank or broker. */
   account?: string;
   currency: CurrencyCode;

@@ -1,27 +1,29 @@
-import type { Category, CurrencyCode, Jar, SortDir, SortKey } from '@/types';
+import { CURRENCIES } from '@/lib/format';
+import type { CurrencyCode, Jar, SortDir, SortKey } from '@/types';
 
 export const progressOf = (jar: Jar) =>
   jar.goal && jar.goal > 0 ? Math.min(jar.saved / jar.goal, 1) : 0;
 
 export const remainingOf = (jar: Jar) => (jar.goal ? Math.max(jar.goal - jar.saved, 0) : null);
 
+/** Per-currency sums: money held in savings jars, and money owed in debt jars. */
 export interface TotalRow {
-  key: string;
-  category: Category;
+  key: CurrencyCode;
   currency: CurrencyCode;
-  total: number;
+  saved: number;
+  owed: number;
 }
 
 export function computeTotals(jars: Jar[]): TotalRow[] {
-  const map = new Map<string, TotalRow>();
+  const map = new Map<CurrencyCode, TotalRow>();
   for (const j of jars) {
-    const key = `${j.category}:${j.currency}`;
-    const row = map.get(key) ?? { key, category: j.category, currency: j.currency, total: 0 };
-    row.total += j.saved;
-    map.set(key, row);
+    const row = map.get(j.currency) ?? { key: j.currency, currency: j.currency, saved: 0, owed: 0 };
+    if (j.debt) row.owed += j.saved;
+    else row.saved += j.saved;
+    map.set(j.currency, row);
   }
   return [...map.values()].sort(
-    (a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category),
+    (a, b) => CURRENCIES.indexOf(a.currency) - CURRENCIES.indexOf(b.currency),
   );
 }
 
@@ -44,6 +46,7 @@ export function sortJars(jars: Jar[], key: SortKey, dir: SortDir): Jar[] {
 /** Virtual basket ids for the switcher and the /basket/[id] route. */
 export const ALL_ID = 'all';
 export const UNSORTED_ID = 'unsorted';
+export const NO_BASKET_LABEL = 'No basket';
 
 /** Active (non-archived) jars belonging to a basket, `all`, or `unsorted`. */
 export function jarsInBasket(jars: Jar[], id: string): Jar[] {
@@ -53,21 +56,8 @@ export function jarsInBasket(jars: Jar[], id: string): Jar[] {
   return active.filter((j) => j.basketId === id);
 }
 
-export const CATEGORY_ORDER: Category[] = ['cash', 'investment', 'cash_debt'];
-
-const CATEGORY_LABEL: Record<Category, string> = {
-  cash: 'Cash / Savings',
-  investment: 'Investment',
-  cash_debt: 'Loan / Debt',
-};
-
-export const categoryLabel = (c: Category) => CATEGORY_LABEL[c];
-
-export const CATEGORY_ICON: Record<Category, 'wallet-outline' | 'chart-line' | 'credit-card-outline'> = {
-  cash: 'wallet-outline',
-  investment: 'chart-line',
-  cash_debt: 'credit-card-outline',
-};
+export const jarIcon = (jar: Pick<Jar, 'debt'>) =>
+  jar.debt ? ('credit-card-outline' as const) : ('wallet-outline' as const);
 
 /** Distinct account names across jars (case-insensitive, first spelling wins). */
 export function knownAccounts(jars: Jar[]): string[] {

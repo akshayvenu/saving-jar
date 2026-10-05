@@ -6,11 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HistorySheet } from '@/components/history/history-sheet';
 import { AmountSheet, type AmountMode } from '@/components/home/amount-sheet';
 import { JarCard } from '@/components/home/jar-card';
+import { MoveBasketSheet } from '@/components/home/move-basket-sheet';
 import { TotalsCard } from '@/components/home/totals-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { OptionSheet } from '@/components/ui/option-sheet';
 import { SectionLabel } from '@/components/ui/section-label';
-import { computeTotals, sortJars } from '@/store/selectors';
+import { NO_BASKET_LABEL, computeTotals, sortJars } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import type { Jar } from '@/types';
 
@@ -36,6 +37,7 @@ export function JarList({ jars, grouped, emptyText }: Props) {
   });
   const [moreJar, setMoreJar] = useState<Jar | null>(null);
   const [historyJar, setHistoryJar] = useState<Jar | null>(null);
+  const [basketJar, setBasketJar] = useState<Jar | null>(null);
 
   const sections = useMemo(() => {
     const sorted = sortJars(jars, sortKey, sortDir);
@@ -52,7 +54,7 @@ export function JarList({ jars, grouped, emptyText }: Props) {
       if (data.length) result.push({ title: b.name, data });
     }
     const loose = rest.filter((j) => !j.basketId);
-    if (loose.length) result.push({ title: 'Unsorted', data: loose });
+    if (loose.length) result.push({ title: NO_BASKET_LABEL, data: loose });
     return result;
   }, [jars, baskets, sortKey, sortDir, grouped]);
 
@@ -125,12 +127,19 @@ export function JarList({ jars, grouped, emptyText }: Props) {
 
       <HistorySheet jar={historyJar} onClose={() => setHistoryJar(null)} />
 
+      <MoveBasketSheet jar={basketJar} onClose={() => setBasketJar(null)} />
+
       <OptionSheet
         visible={!!moreJar}
         title={moreJar?.name ?? ''}
         options={[
           { key: 'pin', label: moreJar?.pinned ? 'Unpin' : 'Pin to top', icon: 'pin-outline' },
-          { key: 'history', label: 'View history', icon: 'history' },
+          {
+            key: 'basket',
+            label: moreJar?.basketId ? 'Move to basket' : 'Add to basket',
+            icon: 'basket-outline',
+          },
+          { key: 'history', label: 'History & stats', icon: 'history' },
           { key: 'edit', label: 'Edit jar', icon: 'pencil-outline' },
           { key: 'archive', label: 'Archive', icon: 'archive-outline' },
           { key: 'delete', label: 'Delete jar', icon: 'trash-can-outline', destructive: true },
@@ -141,6 +150,8 @@ export function JarList({ jars, grouped, emptyText }: Props) {
           setMoreJar(null);
           if (!j) return;
           if (k === 'pin') onPin(j);
+          // iOS can't present a modal while the "more" one is still fading out.
+          if (k === 'basket') setTimeout(() => setBasketJar(j), 300);
           if (k === 'history') onHistory(j);
           if (k === 'edit') onEdit(j);
           if (k === 'archive') onArchive(j);

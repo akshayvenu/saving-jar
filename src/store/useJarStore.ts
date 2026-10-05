@@ -47,6 +47,7 @@ function describeChanges(prev: Jar, next: Jar, baskets: Basket[]): FieldChange[]
   const fields: [string, string, string][] = [
     ['Name', text(prev.name), text(next.name)],
     ['Basket', basket(prev.basketId), basket(next.basketId)],
+    ['Type', prev.debt ? 'Debt' : 'Savings', next.debt ? 'Debt' : 'Savings'],
     ['Account', text(prev.account), text(next.account)],
     ['Currency', prev.currency, next.currency],
     ['Goal', money(prev.goal, prev.currency), money(next.goal, next.currency)],
@@ -72,7 +73,7 @@ interface JarState {
   hasHydrated: boolean;
 
   addJar: (input: JarInput) => string;
-  updateJar: (id: string, patch: Partial<Omit<Jar, 'id' | 'category'>>) => void;
+  updateJar: (id: string, patch: Partial<Omit<Jar, 'id'>>) => void;
   deleteJar: (id: string) => void;
   hideAccount: (name: string) => void;
   togglePin: (id: string) => void;
@@ -220,7 +221,7 @@ export const useJarStore = create<JarState>()(
     }),
     {
       name: 'jamjars-store',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {
         const state = persisted as Partial<JarState>;
@@ -231,6 +232,29 @@ export const useJarStore = create<JarState>()(
           }));
           // Old hard-coded directions: name/deadline ascending, the rest descending.
           state.sortDir = state.sortKey === 'name' || state.sortKey === 'deadline' ? 'asc' : 'desc';
+        }
+        if (version < 4) {
+          // Categories are gone: debt becomes a flag, and loose investment jars are
+          // gathered into an "Investments" basket so they stay grouped.
+          const legacy = (state.jars ?? []) as (Jar & { category?: string })[];
+          let baskets = state.baskets ?? [];
+          let investId: string | null = null;
+          if (legacy.some((j) => j.category === 'investment' && !j.basketId)) {
+            investId =
+              baskets.find((b) => b.name.trim().toLowerCase() === 'investments')?.id ?? uid();
+            if (!baskets.some((b) => b.id === investId)) {
+              baskets = [
+                ...baskets,
+                { id: investId, name: 'Investments', color: paletteAt(baskets.length) },
+              ];
+            }
+          }
+          state.baskets = baskets;
+          state.jars = legacy.map(({ category, ...j }) => ({
+            ...j,
+            debt: category === 'cash_debt' || undefined,
+            basketId: category === 'investment' && !j.basketId ? investId : j.basketId,
+          }));
         }
         return state as JarState;
       },

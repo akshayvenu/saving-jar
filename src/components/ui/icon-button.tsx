@@ -1,9 +1,10 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, type PressableProps } from 'react-native';
 
 import { ink } from '@/theme/colors';
 
-type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+import { Icon } from './icon';
+
+type IconName = React.ComponentProps<typeof Icon>['name'];
 type Tone = 'plain' | 'card' | 'ink';
 
 const tone: Record<Tone, string> = {
@@ -40,7 +41,7 @@ export function IconButton({
       className={`h-11 w-11 items-center justify-center rounded-full ${tone[variant]} ${className ?? ''}`}
       {...rest}
     >
-      <MaterialCommunityIcons
+      <Icon
         name={icon}
         size={size}
         color={color ?? (variant === 'ink' ? '#FFFFFF' : ink.DEFAULT)}

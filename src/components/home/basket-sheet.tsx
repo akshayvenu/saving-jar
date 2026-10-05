@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 
 import { ChoicePill, PillSheet } from '@/components/ui/pill-grid-sheet';
-import { ALL_ID, UNSORTED_ID, jarsInBasket } from '@/store/selectors';
+import { ALL_ID, NO_BASKET_LABEL, UNSORTED_ID, jarsInBasket } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import { jar as jarColors } from '@/theme/colors';
 
@@ -17,19 +17,21 @@ export function BasketSheet({ visible, currentId, onClose }: Props) {
   const jars = useJarStore((s) => s.jars);
   const baskets = useJarStore((s) => s.baskets);
   const counts = useMemo(() => {
+    const count = (id: string) => jarsInBasket(jars, id).length;
     const map: Record<string, number> = {
-      [ALL_ID]: jarsInBasket(jars, ALL_ID).length,
-      [UNSORTED_ID]: jarsInBasket(jars, UNSORTED_ID).length,
+      [ALL_ID]: count(ALL_ID),
+      [UNSORTED_ID]: count(UNSORTED_ID),
     };
-    for (const b of baskets) map[b.id] = jarsInBasket(jars, b.id).length;
+    for (const b of baskets) map[b.id] = count(b.id);
     return map;
   }, [jars, baskets]);
 
   const go = (id: string) => {
     onClose();
     if (id === currentId) return;
-    if (currentId) router.replace({ pathname: '/basket/[id]', params: { id } });
-    else router.push({ pathname: '/basket/[id]', params: { id } });
+    const href = { pathname: '/basket/[id]', params: { id } } as const;
+    if (currentId) router.replace(href);
+    else router.push(href);
   };
 
   return (
@@ -53,7 +55,7 @@ export function BasketSheet({ visible, currentId, onClose }: Props) {
       ))}
       {counts[UNSORTED_ID] > 0 && (
         <ChoicePill
-          label="Unsorted"
+          label={NO_BASKET_LABEL}
           count={counts[UNSORTED_ID]}
           selected={currentId === UNSORTED_ID}
           color={jarColors.slate}

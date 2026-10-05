@@ -16,7 +16,7 @@ export default function EditJarScreen() {
         title="Edit Jar"
         initial={jar}
         onCancel={() => router.back()}
-        onSave={({ category: _fixed, ...patch }) => {
+        onSave={(patch) => {
           updateJar(jar.id, patch);
           router.back();
         }}

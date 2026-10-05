@@ -1,6 +1,6 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { Icon } from '@/components/ui/icon';
 import { formatMoney, formatShortDate } from '@/lib/format';
 import { ink } from '@/theme/colors';
 import type { CurrencyCode, Transaction } from '@/types';
@@ -16,7 +16,7 @@ export function TransactionRow({ tx, currency }: { tx: Transaction; currency: Cu
           isAdd ? 'bg-ink' : 'bg-surface-card'
         }`}
       >
-        <MaterialCommunityIcons
+        <Icon
           name={isAdd ? 'arrow-bottom-left' : 'arrow-top-right'}
           size={20}
           color={isAdd ? '#FFFFFF' : ink.DEFAULT}
@@ -48,7 +48,7 @@ function EditRow({ tx }: { tx: Transaction }) {
   return (
     <View className="flex-row items-start gap-3 border-b-hair border-surface-line px-4 py-3">
       <View className="h-11 w-11 items-center justify-center rounded-2xl bg-surface">
-        <MaterialCommunityIcons name="pencil-outline" size={20} color={ink.muted} />
+        <Icon name="pencil-outline" size={20} color={ink.muted} />
       </View>
       <View className="flex-1">
         <Text className="font-semibold text-[15px] text-ink">Edited</Text>

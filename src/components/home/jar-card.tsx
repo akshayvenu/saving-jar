@@ -1,11 +1,11 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { memo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { IconButton } from '@/components/ui/icon-button';
 import { formatMoney, formatPercent, formatShortDate } from '@/lib/format';
-import { CATEGORY_ICON, daysUntilDeadline, progressOf, remainingOf } from '@/store/selectors';
+import { daysUntilDeadline, jarIcon, progressOf, remainingOf } from '@/store/selectors';
 import { ink, jar as jarColors } from '@/theme/colors';
 import type { Jar } from '@/types';
 
@@ -60,11 +60,7 @@ export const JarCard = memo(function JarCard({
           {/* Identity */}
           <View className="flex-row items-center gap-2.5">
             <View className="h-9 w-9 items-center justify-center rounded-xl border-hair border-ink bg-surface-card">
-              <MaterialCommunityIcons
-                name={CATEGORY_ICON[jar.category]}
-                size={18}
-                color={ink.DEFAULT}
-              />
+              <Icon name={jarIcon(jar)} size={18} color={ink.DEFAULT} />
             </View>
             <View className="flex-1">
               <View className="flex-row items-center gap-1">
@@ -75,12 +71,12 @@ export const JarCard = memo(function JarCard({
                   {jar.name}
                 </Text>
                 {jar.pinned && !jar.archived ? (
-                  <MaterialCommunityIcons name="pin" size={14} color={ink.DEFAULT} />
+                  <Icon name="pin" size={14} color={ink.DEFAULT} />
                 ) : null}
               </View>
               {jar.account ? (
                 <View className="flex-row items-center gap-1">
-                  <MaterialCommunityIcons name="bank-outline" size={12} color={ink.muted} />
+                  <Icon name="bank-outline" size={12} color={ink.muted} />
                   <Text numberOfLines={1} className="font-sans text-xs text-ink/70">
                     {jar.account}
                   </Text>
@@ -129,7 +125,7 @@ export const JarCard = memo(function JarCard({
                   overdue ? 'bg-danger' : 'bg-surface-card'
                 }`}
               >
-                <MaterialCommunityIcons
+                <Icon
                   name="calendar-blank-outline"
                   size={13}
                   color={overdue ? '#FFFFFF' : ink.DEFAULT}
@@ -137,7 +133,7 @@ export const JarCard = memo(function JarCard({
                 <Text className={`font-sans text-xs ${overdue ? 'text-white' : 'text-ink'}`}>
                   {formatShortDate(jar.deadline)}
                 </Text>
-                <MaterialCommunityIcons
+                <Icon
                   name={expanded ? 'chevron-up' : 'chevron-down'}
                   size={14}
                   color={overdue ? '#FFFFFF' : ink.DEFAULT}
