@@ -37,24 +37,45 @@ export function BottomBar({ onBaskets, onSort, newJarBasketId }: Props) {
         />
         <IconButton icon="cog-outline" label="Settings" onPress={() => router.push('/settings')} />
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Create jar"
-        hitSlop={6}
-        onPress={() =>
-          router.push({
-            pathname: '/jar/new',
-            params: newJarBasketId ? { basketId: newJarBasketId } : {},
-          })
-        }
-        style={({ pressed }) => ({
-          boxShadow: pressed ? undefined : SHADOW,
-          transform: pressed ? [{ translateX: 2 }, { translateY: 2 }] : undefined,
-        })}
-        className="h-[58px] w-[58px] items-center justify-center rounded-[20px] border-hair border-ink bg-brand"
-      >
-        <MaterialCommunityIcons name="plus" size={30} color="#FFFFFF" />
-      </Pressable>
+      <CreateJarButton basketId={newJarBasketId} />
+    </View>
+  );
+}
+
+/** Brand-colored "+" tile that opens the new-jar form, optionally preselecting a basket. */
+export function CreateJarButton({ basketId }: { basketId?: string }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Create jar"
+      hitSlop={6}
+      onPress={() =>
+        router.push({
+          pathname: '/jar/new',
+          params: basketId ? { basketId } : {},
+        })
+      }
+      style={({ pressed }) => ({
+        boxShadow: pressed ? undefined : SHADOW,
+        transform: pressed ? [{ translateX: 2 }, { translateY: 2 }] : undefined,
+      })}
+      className="h-[58px] w-[58px] items-center justify-center rounded-[20px] border-hair border-ink bg-brand"
+    >
+      <MaterialCommunityIcons name="plus" size={30} color="#FFFFFF" />
+    </Pressable>
+  );
+}
+
+/** Home screen variant: just the create button, floating bottom-right. */
+export function FloatingCreateButton() {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      pointerEvents="box-none"
+      style={{ paddingBottom: Math.max(insets.bottom, 12) + 4 }}
+      className="absolute inset-x-0 bottom-0 items-end px-5"
+    >
+      <CreateJarButton />
     </View>
   );
 }
