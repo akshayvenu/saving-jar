@@ -18,12 +18,9 @@ import {
   UNSORTED_ID,
   computeTotals,
   jarsInBasket,
-  sortJars,
 } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import type { Jar } from '@/types';
-
-const FALLBACK_JARS = 3;
 
 export default function OverviewScreen() {
   const insets = useSafeAreaInsets();
@@ -40,10 +37,6 @@ export default function OverviewScreen() {
   const unsorted = useMemo(() => jarsInBasket(jars, UNSORTED_ID), [jars]);
 
   const pinned = useMemo(() => active.filter((j) => j.pinned), [active]);
-  const featured = useMemo(
-    () => (pinned.length > 0 ? pinned : sortJars(active, 'amount', 'desc').slice(0, FALLBACK_JARS)),
-    [pinned, active],
-  );
 
   const open = (id: string) => router.push({ pathname: '/basket/[id]', params: { id } });
 
@@ -52,7 +45,7 @@ export default function OverviewScreen() {
       <View className="flex-row items-center justify-between px-5 pb-2 pt-2">
         <View className="flex-row items-center gap-2.5">
           <BrandMark size={11} />
-          <Text className="font-display-bold text-2xl tracking-tight text-ink">JamJars</Text>
+          <Text className="font-display-bold text-2xl tracking-tight text-ink">Saving Jar</Text>
         </View>
         <IconButton
           variant="card"
@@ -68,11 +61,11 @@ export default function OverviewScreen() {
       >
         <BalanceHero rows={totals} jars={active} fallbackCurrency={defaultCurrency} />
 
-        {featured.length > 0 && (
+        {pinned.length > 0 && (
           <View className="px-5">
-            <SectionLabel>{pinned.length > 0 ? 'Pinned' : 'Your jars'}</SectionLabel>
+            <SectionLabel>Pinned</SectionLabel>
             <ListCard>
-              {featured.map((j) => (
+              {pinned.map((j) => (
                 <JarRow
                   key={j.id}
                   jar={j}
