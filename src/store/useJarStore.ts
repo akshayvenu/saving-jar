@@ -5,15 +5,15 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { formatDate, formatMoney } from '@/lib/format';
 import { jar as jarColors } from '@/theme/colors';
 import type {
-  Basket,
-  CurrencyCode,
-  FieldChange,
-  Jar,
-  JarColor,
-  JarInput,
-  SortDir,
-  SortKey,
-  Transaction,
+    Basket,
+    CurrencyCode,
+    FieldChange,
+    Jar,
+    JarColor,
+    JarInput,
+    SortDir,
+    SortKey,
+    Transaction,
 } from '@/types';
 
 const PALETTE = Object.keys(jarColors) as JarColor[];
@@ -219,7 +219,7 @@ export const useJarStore = create<JarState>()(
       setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency }),
     }),
     {
-      name: 'jamjars-store',
+      name: 'saving jars-store',
       version: 3,
       storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {

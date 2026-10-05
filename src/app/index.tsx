@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -32,9 +32,26 @@ export default function OverviewScreen() {
     mode: 'add',
   });
 
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+
   const active = useMemo(() => jarsInBasket(jars, ALL_ID), [jars]);
   const totals = useMemo(() => computeTotals(active), [active]);
-  const unsorted = useMemo(() => jarsInBasket(jars, UNSORTED_ID), [jars]);
+  const row = totals.find((r) => r.key === selectedKey) ?? totals[0];
+
+  // Baskets list follows the selected category·currency tab.
+  const inTab = useCallback(
+    (list: Jar[]) =>
+      row ? list.filter((j) => j.category === row.category && j.currency === row.currency) : list,
+    [row],
+  );
+  const basketRows = useMemo(
+    () =>
+      baskets
+        .map((b) => ({ basket: b, jars: inTab(jarsInBasket(jars, b.id)) }))
+        .filter((x) => !row || x.jars.length > 0),
+    [baskets, jars, inTab, row],
+  );
+  const unsorted = useMemo(() => inTab(jarsInBasket(jars, UNSORTED_ID)), [jars, inTab]);
 
   const pinned = useMemo(() => active.filter((j) => j.pinned), [active]);
 
@@ -59,7 +76,13 @@ export default function OverviewScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100, paddingTop: 12 }}
         showsVerticalScrollIndicator={false}
       >
-        <BalanceHero rows={totals} jars={active} fallbackCurrency={defaultCurrency} />
+        <BalanceHero
+          rows={totals}
+          row={row}
+          onSelect={setSelectedKey}
+          jars={active}
+          fallbackCurrency={defaultCurrency}
+        />
 
         {pinned.length > 0 && (
           <View className="px-5">
@@ -83,12 +106,12 @@ export default function OverviewScreen() {
           </SectionLabel>
           <ListCard>
             {[
-              ...baskets.map((b) => (
+              ...basketRows.map(({ basket: b, jars: list }) => (
                 <BasketRow
                   key={b.id}
                   name={b.name}
                   color={b.color}
-                  jars={jarsInBasket(jars, b.id)}
+                  jars={list}
                   onPress={() => open(b.id)}
                 />
               )),

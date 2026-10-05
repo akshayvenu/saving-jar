@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ProgressBar } from '@/components/ui/progress-bar';
@@ -9,15 +9,16 @@ import type { CurrencyCode, Jar } from '@/types';
 
 interface Props {
   rows: TotalRow[];
+  /** The selected tab; `undefined` when there are no rows. */
+  row: TotalRow | undefined;
+  onSelect: (key: string) => void;
   /** Active jars, used for the goal progress sums. */
   jars: Jar[];
   fallbackCurrency: CurrencyCode;
 }
 
 /** Big balance, one tab per category·currency total, and overall goal progress. */
-export function BalanceHero({ rows, jars, fallbackCurrency }: Props) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const row = rows.find((r) => r.key === selectedKey) ?? rows[0];
+export function BalanceHero({ rows, row, onSelect, jars, fallbackCurrency }: Props) {
 
   const { goalTotal, savedTowardGoals } = useMemo(() => {
     const group = row
@@ -60,7 +61,7 @@ export function BalanceHero({ rows, jars, fallbackCurrency }: Props) {
                 key={r.key}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
-                onPress={() => setSelectedKey(r.key)}
+                onPress={() => onSelect(r.key)}
                 className={`border-b-2 pb-1.5 ${active ? 'border-ink' : 'border-transparent'}`}
               >
                 <Text

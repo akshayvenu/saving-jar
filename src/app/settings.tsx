@@ -40,7 +40,7 @@ export default function SettingsScreen() {
         </Pressable>
         <View className="mt-12 items-center gap-3">
           <BrandMark size={14} />
-          <Text className="font-display-bold text-xl text-ink">JamJars</Text>
+          <Text className="font-display-bold text-xl text-ink">saving jars</Text>
           <Text className="font-sans text-sm text-ink-muted">
             Saving, made simple · v{Constants.expoConfig?.version ?? '1.0.0'}
           </Text>
