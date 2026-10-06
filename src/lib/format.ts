@@ -24,6 +24,27 @@ export function formatPercent(ratio: number): string {
   return `${(Math.min(Math.max(ratio, 0), 1) * 100).toFixed(1).replace(/\.0$/, '')}%`;
 }
 
+/** Keeps only what an amount can hold while typing: digits, one dot, two decimals. */
+export function cleanAmountInput(input: string): string {
+  const cleaned = input.replace(/[^\d.]/g, '');
+  const dot = cleaned.indexOf('.');
+  if (dot === -1) return cleaned;
+  return `${cleaned.slice(0, dot)}.${cleaned.slice(dot + 1).replace(/\./g, '').slice(0, 2)}`;
+}
+
+/** Adds thousands separators to a cleaned amount ("1250000.5" → "12,50,000.5" in INR). */
+export function groupAmountInput(raw: string, currency: CurrencyCode): string {
+  const [whole, fraction] = raw.split('.');
+  let grouped: string;
+  if (currency === 'INR' && whole.length > 3) {
+    // Indian grouping: last three digits, then pairs
+    grouped = `${whole.slice(0, -3).replace(/\B(?=(\d{2})+$)/g, ',')},${whole.slice(-3)}`;
+  } else {
+    grouped = whole.replace(/\B(?=(\d{3})+$)/g, ',');
+  }
+  return fraction === undefined ? grouped : `${grouped}.${fraction}`;
+}
+
 /** Parses user input like "1,250.5" into minor units; returns null if invalid. */
 export function parseAmount(input: string): number | null {
   const cleaned = input.replace(/,/g, '').trim();

@@ -10,7 +10,14 @@ import { Icon } from '@/components/ui/icon';
 import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { TextField } from '@/components/ui/text-field';
-import { CURRENCIES, formatDate, parseAmount, toMajor } from '@/lib/format';
+import {
+  CURRENCIES,
+  cleanAmountInput,
+  formatDate,
+  groupAmountInput,
+  parseAmount,
+  toMajor,
+} from '@/lib/format';
 import { NO_BASKET_LABEL, jarIcon, knownAccounts } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import { brand, ink, jar as jarColors } from '@/theme/colors';
@@ -104,10 +111,8 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      className="flex-1"
-    >
+    // Android is edge-to-edge, so the window no longer resizes for the keyboard; pad on both
+    <KeyboardAvoidingView behavior="padding" className="flex-1">
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="px-5 pb-8 pt-2"
@@ -215,8 +220,8 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           <TextField
             className="flex-1"
             label={debt ? 'Paid' : 'Saved'}
-            value={saved}
-            onChangeText={setSaved}
+            value={groupAmountInput(saved, currency)}
+            onChangeText={(t) => setSaved(cleanAmountInput(t))}
             keyboardType="decimal-pad"
             placeholder="0"
             error={submitted ? errors.saved : undefined}
@@ -224,8 +229,8 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           <TextField
             className="flex-1"
             label={debt ? 'Loan amount' : 'Goal (Optional)'}
-            value={goal}
-            onChangeText={setGoal}
+            value={groupAmountInput(goal, currency)}
+            onChangeText={(t) => setGoal(cleanAmountInput(t))}
             keyboardType="decimal-pad"
             placeholder="None"
             error={submitted ? errors.goal : undefined}
