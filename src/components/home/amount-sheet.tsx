@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { SheetHandle } from '@/components/ui/sheet-frame';
 import { formatMoney, parseAmount } from '@/lib/format';
+import { remainingOf, splitPayment } from '@/store/selectors';
 import { ink } from '@/theme/colors';
 import type { Jar } from '@/types';
 
@@ -133,6 +134,8 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
   const amount = parseAmount(value);
   const invalid = amount == null || amount <= 0;
   const isAdd = mode === 'add';
+  const loan = !!shown.debt && !!shown.interestRate && shown.goal != null;
+  const split = loan && isAdd && !invalid ? splitPayment(shown, amount) : null;
 
   const submit = () => {
     if (!jar || invalid) return;
@@ -181,7 +184,9 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
                 {isAdd ? 'Add to' : 'Take from'} {shown.name}
               </Text>
               <Text className="font-sans text-sm text-ink-muted">
-                Balance {formatMoney(shown.saved, shown.currency)}
+                {loan
+                  ? `Owed ${formatMoney(remainingOf(shown) ?? shown.saved, shown.currency)} · ${shown.interestRate}% / yr`
+                  : `Balance ${formatMoney(shown.saved, shown.currency)}`}
               </Text>
             </View>
           </View>
@@ -214,6 +219,12 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
                 </Pressable>
               ))}
             </View>
+            {split && (
+              <Text className="mt-2 text-center font-sans text-sm text-ink-muted">
+                {formatMoney(split.interest, shown.currency)} interest ·{' '}
+                {formatMoney(split.principal, shown.currency)} to principal
+              </Text>
+            )}
           </View>
 
           <TextInput

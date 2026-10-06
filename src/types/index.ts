@@ -10,6 +10,8 @@ export interface Jar {
   basketId: string | null;
   /** Money owed rather than held; kept out of "Total saved" and summed as "Owed". */
   debt?: boolean;
+  /** Annual interest rate in percent; debt jars only. */
+  interestRate?: number;
   /** Where the money is held, e.g. a bank or broker. */
   account?: string;
   currency: CurrencyCode;
@@ -35,6 +37,8 @@ export interface Transaction {
   type: 'add' | 'minus' | 'edit';
   amount: number;
   balanceAfter: number;
+  /** Part of a loan payment that went to interest; `amount` is the principal part. */
+  interest?: number;
   note?: string;
   /** Field changes on `edit` rows, formatted when the edit was made. */
   changes?: FieldChange[];

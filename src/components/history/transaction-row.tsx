@@ -29,12 +29,15 @@ export function TransactionRow({ tx, currency }: { tx: Transaction; currency: Cu
         </Text>
         <Text className="font-sans text-[13px] text-ink-muted">
           {formatShortDate(tx.createdAt)}
+          {tx.interest
+            ? ` · ${formatMoney(tx.amount, currency)} principal · ${formatMoney(tx.interest, currency)} interest`
+            : ''}
         </Text>
       </View>
       <View className="items-end">
         <Text className={`font-display-semibold text-base ${isAdd ? 'text-success' : 'text-ink'}`}>
           {isAdd ? '+' : '−'}
-          {formatMoney(tx.amount, currency)}
+          {formatMoney(tx.amount + (tx.interest ?? 0), currency)}
         </Text>
         <Text className="font-sans text-[12px] text-ink-muted">
           {formatMoney(tx.balanceAfter, currency)}

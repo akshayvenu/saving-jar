@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { formatDate, formatMoney } from '@/lib/format';
+import { splitPayment } from '@/store/selectors';
 import { jar as jarColors } from '@/theme/colors';
 import type {
     Basket,
@@ -50,6 +51,11 @@ function describeChanges(prev: Jar, next: Jar, baskets: Basket[]): FieldChange[]
     ['Type', prev.debt ? 'Debt' : 'Savings', next.debt ? 'Debt' : 'Savings'],
     ['Account', text(prev.account), text(next.account)],
     ['Currency', prev.currency, next.currency],
+    [
+      'Interest',
+      prev.interestRate ? `${prev.interestRate}% / yr` : 'None',
+      next.interestRate ? `${next.interestRate}% / yr` : 'None',
+    ],
     ['Goal', money(prev.goal, prev.currency), money(next.goal, next.currency)],
     ['Deadline', date(prev.deadline), date(next.deadline)],
     ['Note', text(prev.note), text(next.note)],
@@ -177,13 +183,16 @@ export const useJarStore = create<JarState>()(
         set((s) => {
           const jar = s.jars.find((j) => j.id === jarId);
           if (!jar || amount <= 0) return s;
-          const next = type === 'add' ? jar.saved + amount : Math.max(0, jar.saved - amount);
+          const { interest, principal } =
+            type === 'add' ? splitPayment(jar, amount) : { interest: 0, principal: 0 };
+          const next = type === 'add' ? jar.saved + principal : Math.max(0, jar.saved - amount);
           const tx: Transaction = {
             id: uid(),
             jarId,
             type,
             amount: Math.abs(next - jar.saved),
             balanceAfter: next,
+            interest: interest > 0 ? interest : undefined,
             note: note?.trim() || undefined,
             createdAt: new Date().toISOString(),
           };

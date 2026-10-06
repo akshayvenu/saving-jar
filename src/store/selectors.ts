@@ -6,6 +6,16 @@ export const progressOf = (jar: Jar) =>
 
 export const remainingOf = (jar: Jar) => (jar.goal ? Math.max(jar.goal - jar.saved, 0) : null);
 
+/** Splits a loan payment into one month's interest and the principal it pays off. */
+export function splitPayment(jar: Jar, amount: number): { interest: number; principal: number } {
+  const remaining = remainingOf(jar);
+  if (!jar.debt || !jar.interestRate || remaining == null) {
+    return { interest: 0, principal: amount };
+  }
+  const interest = Math.min(amount, Math.round((remaining * jar.interestRate) / 1200));
+  return { interest, principal: Math.min(amount - interest, remaining) };
+}
+
 /**
  * Per-currency sums: money held in savings jars, and money still owed in debt jars
  * (goal minus amount paid; the full balance when the debt has no goal).

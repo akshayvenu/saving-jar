@@ -41,6 +41,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
   const [currency, setCurrency] = useState<CurrencyCode>(initial?.currency ?? defaultCurrency);
   const [saved, setSaved] = useState(initial ? String(toMajor(initial.saved)) : '');
   const [goal, setGoal] = useState(initial?.goal ? String(toMajor(initial.goal)) : '');
+  const [interest, setInterest] = useState(initial?.interestRate ? String(initial.interestRate) : '');
   const [deadline, setDeadline] = useState<Date | null>(
     initial?.deadline ? new Date(initial.deadline) : null,
   );
@@ -69,7 +70,12 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
 
   const savedMinor = saved.trim() === '' ? 0 : parseAmount(saved);
   const goalMinor = goal.trim() === '' ? null : parseAmount(goal);
+  const rate = interest.trim() === '' ? null : Number(interest.replace(',', '.'));
   const errors = {
+    interest:
+      debt && rate != null && (!Number.isFinite(rate) || rate < 0 || rate > 100)
+        ? 'Enter a valid rate'
+        : undefined,
     name: name.trim() ? undefined : 'Give your jar a name',
     saved: savedMinor == null ? 'Enter a valid amount' : undefined,
     goal:
@@ -90,6 +96,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
       currency,
       saved: savedMinor ?? 0,
       goal: goalMinor,
+      interestRate: debt && rate ? rate : undefined,
       note: note.trim() || undefined,
       deadline: deadline?.toISOString(),
       color,
@@ -207,7 +214,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
         <View className="flex-row gap-4">
           <TextField
             className="flex-1"
-            label={debt ? 'Owed' : 'Saved'}
+            label={debt ? 'Paid' : 'Saved'}
             value={saved}
             onChangeText={setSaved}
             keyboardType="decimal-pad"
@@ -216,7 +223,7 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
           />
           <TextField
             className="flex-1"
-            label="Goal (Optional)"
+            label={debt ? 'Loan amount' : 'Goal (Optional)'}
             value={goal}
             onChangeText={setGoal}
             keyboardType="decimal-pad"
@@ -224,6 +231,23 @@ export function JarForm({ title, initial, initialBasketId, onCancel, onSave }: P
             error={submitted ? errors.goal : undefined}
           />
         </View>
+        {debt && (
+          <TextField
+            className="mt-4"
+            label="Interest % per year (Optional)"
+            value={interest}
+            onChangeText={setInterest}
+            keyboardType="decimal-pad"
+            placeholder="e.g. 9"
+            error={submitted ? errors.interest : undefined}
+          />
+        )}
+        {debt && rate ? (
+          <Text className="ml-1 mt-1.5 font-sans text-sm text-ink-muted">
+            Each payment covers a month of interest first; the rest reduces what you owe. Needs a
+            loan amount.
+          </Text>
+        ) : null}
 
         <TextField
           className="mt-4"

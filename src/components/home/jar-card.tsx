@@ -102,17 +102,21 @@ export const JarCard = memo(function JarCard({
               >
                 {formatMoney(jar.saved, jar.currency)}
               </Text>
-              <Text numberOfLines={1} className="font-sans text-sm text-ink/70">
-                {jar.goal
-                  ? `of ${formatMoney(jar.goal, jar.currency)}${
-                      remaining == null
-                        ? ''
-                        : remaining === 0
-                          ? ' · Goal reached'
-                          : ` · ${formatMoney(remaining, jar.currency)} to go`
-                    }`
-                  : 'No goal set'}
-              </Text>
+              <View className="flex-row items-center gap-2">
+                <Text numberOfLines={1} className="shrink font-sans text-sm text-ink/70">
+                  {jar.goal
+                    ? `of ${formatMoney(jar.goal, jar.currency)}${
+                        remaining ? ` · ${formatMoney(remaining, jar.currency)} to go` : ''
+                      }`
+                    : 'No goal set'}
+                </Text>
+                {remaining === 0 && (
+                  <View className="flex-row items-center gap-1 rounded-full border-hair border-ink bg-success px-2 py-0.5">
+                    <Icon name="check-bold" size={12} color="#FFFFFF" />
+                    <Text className="font-display-semibold text-xs text-white">Goal reached</Text>
+                  </View>
+                )}
+              </View>
             </View>
             {jar.deadline && days != null && (
               <Pressable
@@ -152,13 +156,16 @@ export const JarCard = memo(function JarCard({
               {remaining != null && remaining > 0 && days > 0 && (
                 <View className="mt-2 flex-row gap-2">
                   <PlanStat
-                    label="per day"
-                    value={formatMoney(Math.ceil(remaining / days), jar.currency)}
-                  />
-                  <PlanStat
                     label="per week"
                     value={formatMoney(
                       Math.min(remaining, Math.ceil((remaining * 7) / days)),
+                      jar.currency,
+                    )}
+                  />
+                  <PlanStat
+                    label="per month"
+                    value={formatMoney(
+                      Math.min(remaining, Math.ceil((remaining * 30) / days)),
                       jar.currency,
                     )}
                   />
@@ -166,7 +173,7 @@ export const JarCard = memo(function JarCard({
               )}
               {days >= 0 && remaining == null && (
                 <Text className="mt-1 font-sans text-sm text-ink-muted">
-                  Set a goal to see how much to save per day and week
+                  Set a goal to see how much to save per week and month
                 </Text>
               )}
             </View>
@@ -174,14 +181,17 @@ export const JarCard = memo(function JarCard({
 
           {/* Actions */}
           <View className="mt-3 flex-row items-center gap-2.5">
-            <Button
-              title="Take out"
-              icon="arrow-top-right"
-              variant="secondary"
-              compact
-              className="flex-1"
-              onPress={() => onMinus(jar)}
-            />
+            {/* Loans are only paid down, never drawn from. */}
+            {!jar.debt && (
+              <Button
+                title="Take out"
+                icon="arrow-top-right"
+                variant="secondary"
+                compact
+                className="flex-1"
+                onPress={() => onMinus(jar)}
+              />
+            )}
             <Button
               title="Add"
               icon="arrow-bottom-left"
