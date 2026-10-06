@@ -14,7 +14,8 @@
         "buildType": "apk"
       },
       "env": {
-        "ANDROID_BUILD_ARCHS": "arm64-v8a"
+        "ANDROID_BUILD_ARCHS": "arm64-v8a",
+        "ANDROID_COMPACT_APK": "1"
       }
     },
     "production": {
