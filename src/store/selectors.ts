@@ -6,7 +6,10 @@ export const progressOf = (jar: Jar) =>
 
 export const remainingOf = (jar: Jar) => (jar.goal ? Math.max(jar.goal - jar.saved, 0) : null);
 
-/** Per-currency sums: money held in savings jars, and money owed in debt jars. */
+/**
+ * Per-currency sums: money held in savings jars, and money still owed in debt jars
+ * (goal minus amount paid; the full balance when the debt has no goal).
+ */
 export interface TotalRow {
   key: CurrencyCode;
   currency: CurrencyCode;
@@ -18,7 +21,7 @@ export function computeTotals(jars: Jar[]): TotalRow[] {
   const map = new Map<CurrencyCode, TotalRow>();
   for (const j of jars) {
     const row = map.get(j.currency) ?? { key: j.currency, currency: j.currency, saved: 0, owed: 0 };
-    if (j.debt) row.owed += j.saved;
+    if (j.debt) row.owed += remainingOf(j) ?? j.saved;
     else row.saved += j.saved;
     map.set(j.currency, row);
   }
