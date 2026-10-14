@@ -75,6 +75,8 @@ interface JarState {
   sortKey: SortKey;
   sortDir: SortDir;
   defaultCurrency: CurrencyCode;
+  /** Masks money amounts on Home so they can't be read over the shoulder. */
+  hideAmounts: boolean;
   /** True once saved data has been loaded from device storage. */
   hasHydrated: boolean;
 
@@ -95,6 +97,7 @@ interface JarState {
   setSortKey: (key: SortKey) => void;
   setSortDir: (dir: SortDir) => void;
   setDefaultCurrency: (c: CurrencyCode) => void;
+  toggleHideAmounts: () => void;
 }
 
 const defaultBaskets: Basket[] = [
@@ -112,6 +115,7 @@ export const useJarStore = create<JarState>()(
       sortKey: 'manual',
       sortDir: 'desc',
       defaultCurrency: 'INR',
+      hideAmounts: false,
       hasHydrated: false,
 
       addJar: (input) => {
@@ -227,6 +231,7 @@ export const useJarStore = create<JarState>()(
       setSortKey: (sortKey) => set({ sortKey }),
       setSortDir: (sortDir) => set({ sortDir }),
       setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency }),
+      toggleHideAmounts: () => set((s) => ({ hideAmounts: !s.hideAmounts })),
     }),
     {
       name: 'jamjars-store',
@@ -275,6 +280,7 @@ export const useJarStore = create<JarState>()(
         sortKey: s.sortKey,
         sortDir: s.sortDir,
         defaultCurrency: s.defaultCurrency,
+        hideAmounts: s.hideAmounts,
       }),
       onRehydrateStorage: () => () => useJarStore.setState({ hasHydrated: true }),
     },

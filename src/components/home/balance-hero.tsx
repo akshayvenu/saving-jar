@@ -3,8 +3,9 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { ProgressBar } from '@/components/ui/progress-bar';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, maskMoney } from '@/lib/format';
 import type { TotalRow } from '@/store/selectors';
+import { useJarStore } from '@/store/useJarStore';
 import { brand, ink } from '@/theme/colors';
 import type { CurrencyCode, Jar } from '@/types';
 
@@ -32,25 +33,42 @@ export function BalanceHero({ rows, row, onSelect, jars, fallbackCurrency }: Pro
     };
   }, [jars, row]);
 
+  const hidden = useJarStore((s) => s.hideAmounts);
+  const toggleHidden = useJarStore((s) => s.toggleHideAmounts);
+  const money = (minor: number, currency: CurrencyCode) =>
+    hidden ? maskMoney(currency) : formatMoney(minor, currency);
+  const toggleLabel = hidden ? 'Show balance' : 'Hide balance';
+
   return (
     <View className="px-5">
-      <Text className="font-sans text-sm text-ink-muted">Total saved</Text>
-      <Text
-        accessibilityRole="header"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        className="font-display-bold text-[44px] leading-[52px] tracking-tight text-ink"
-      >
-        {formatMoney(row?.saved ?? 0, row?.currency ?? fallbackCurrency)}
-      </Text>
+      <View className="flex-row items-center gap-1">
+        <Text className="font-sans text-sm text-ink-muted">Total saved</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={toggleLabel}
+          hitSlop={12}
+          onPress={toggleHidden}
+          className="h-8 w-8 items-center justify-center rounded-full active:bg-black/10"
+        >
+          <Icon name={hidden ? 'eye-off-outline' : 'eye-outline'} size={19} color={ink.muted} />
+        </Pressable>
+      </View>
+      <Pressable accessibilityLabel={toggleLabel} onPress={toggleHidden}>
+        <Text
+          accessibilityRole="header"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          className="font-display-bold text-[44px] leading-[52px] tracking-tight text-ink"
+        >
+          {money(row?.saved ?? 0, row?.currency ?? fallbackCurrency)}
+        </Text>
+      </Pressable>
       {row && row.owed > 0 && (
         <View className="mt-0.5 flex-row items-center gap-1.5">
           <Icon name="credit-card-outline" size={15} color={ink.muted} />
           <Text className="font-sans text-sm text-ink-muted">
             Owed{' '}
-            <Text className="font-display-semibold text-ink">
-              {formatMoney(row.owed, row.currency)}
-            </Text>
+            <Text className="font-display-semibold text-ink">{money(row.owed, row.currency)}</Text>
           </Text>
         </View>
       )}
@@ -87,8 +105,7 @@ export function BalanceHero({ rows, row, onSelect, jars, fallbackCurrency }: Pro
         <View className="mt-4">
           <ProgressBar progress={savedTowardGoals / goalTotal} color={brand.DEFAULT} />
           <Text className="mt-2 font-sans text-sm text-ink-muted">
-            {formatMoney(savedTowardGoals, row.currency)} of {formatMoney(goalTotal, row.currency)}{' '}
-            goals · {Math.round((savedTowardGoals / goalTotal) * 100)}%
+            {money(savedTowardGoals, row.currency)} of {money(goalTotal, row.currency)} goals · {Math.round((savedTowardGoals / goalTotal) * 100)}%
           </Text>
         </View>
       )}

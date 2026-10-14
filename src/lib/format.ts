@@ -20,6 +20,11 @@ export function formatMoney(minor: number, currency: CurrencyCode): string {
   }).format(value);
 }
 
+/** Hidden-balance placeholder that keeps the currency symbol in place ("₹••••••", "•••••• €"). */
+export function maskMoney(currency: CurrencyCode): string {
+  return formatMoney(0, currency).replace('0', '••••••');
+}
+
 export function formatPercent(ratio: number): string {
   return `${(Math.min(Math.max(ratio, 0), 1) * 100).toFixed(1).replace(/\.0$/, '')}%`;
 }

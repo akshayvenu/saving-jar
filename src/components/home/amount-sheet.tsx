@@ -24,7 +24,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { SheetHandle } from '@/components/ui/sheet-frame';
-import { formatMoney, parseAmount } from '@/lib/format';
+import { cleanAmountInput, formatMoney, groupAmountInput, parseAmount } from '@/lib/format';
 import { remainingOf, splitPayment } from '@/store/selectors';
 import { ink } from '@/theme/colors';
 import type { Jar } from '@/types';
@@ -194,8 +194,8 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
           <View className="my-4 rounded-jar border-hair border-ink bg-surface-card px-4 pb-3 pt-2">
             <TextInput
               ref={inputRef}
-              value={value}
-              onChangeText={setValue}
+              value={groupAmountInput(value, shown.currency)}
+              onChangeText={(t) => setValue(cleanAmountInput(t))}
               keyboardType="decimal-pad"
               placeholder="0"
               placeholderTextColor={ink.faint}
@@ -214,7 +214,7 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
                 >
                   <Text className="font-display-semibold text-ink">
                     {isAdd ? '+' : '−'}
-                    {q}
+                    {groupAmountInput(String(q), shown.currency)}
                   </Text>
                 </Pressable>
               ))}

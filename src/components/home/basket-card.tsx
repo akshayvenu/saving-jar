@@ -1,10 +1,11 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, maskMoney } from '@/lib/format';
 import { computeTotals } from '@/store/selectors';
+import { useJarStore } from '@/store/useJarStore';
 import { ink, jar as jarColors } from '@/theme/colors';
-import type { Jar, JarColor } from '@/types';
+import type { CurrencyCode, Jar, JarColor } from '@/types';
 
 interface Props {
   name: string;
@@ -17,6 +18,9 @@ interface Props {
 export function BasketRow({ name, color, jars, onPress }: Props) {
   const [first, ...rest] = computeTotals(jars);
   const onlyOwed = !!first && first.saved === 0 && first.owed > 0;
+  const hidden = useJarStore((s) => s.hideAmounts);
+  const money = (minor: number, currency: CurrencyCode) =>
+    hidden ? maskMoney(currency) : formatMoney(minor, currency);
   return (
     <Pressable
       accessibilityRole="button"
@@ -41,14 +45,14 @@ export function BasketRow({ name, color, jars, onPress }: Props) {
           {!first
             ? 'Empty'
             : onlyOwed
-              ? `${formatMoney(first.owed, first.currency)} owed`
-              : formatMoney(first.saved, first.currency)}
+              ? `${money(first.owed, first.currency)} owed`
+              : money(first.saved, first.currency)}
         </Text>
         {rest.length > 0 ? (
           <Text className="font-sans text-xs text-ink-muted">+{rest.length} more</Text>
         ) : first && first.owed > 0 && !onlyOwed ? (
           <Text className="font-sans text-xs text-ink-muted">
-            {formatMoney(first.owed, first.currency)} owed
+            {money(first.owed, first.currency)} owed
           </Text>
         ) : null}
       </View>
