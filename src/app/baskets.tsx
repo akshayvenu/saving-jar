@@ -86,7 +86,7 @@ export default function BasketsScreen() {
             <View className="px-5">
               <SectionLabel meta={String(baskets.length)}>Your baskets</SectionLabel>
             </View>
-          ) : null
+          ) : undefined
         }
         ListEmptyComponent={
           <EmptyState

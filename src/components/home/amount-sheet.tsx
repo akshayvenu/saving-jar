@@ -35,6 +35,10 @@ interface Props {
   /** The sheet is open while `jar` is set. */
   jar: Jar | null;
   mode: AmountMode;
+  /** Overrides for callers with their own wording, e.g. the spending challenge. */
+  title?: string;
+  subtitle?: string;
+  submitLabel?: string;
   onSubmit: (jar: Jar, mode: AmountMode, amount: number, note?: string) => void;
   onClose: () => void;
 }
@@ -50,9 +54,9 @@ const CLOSE = { duration: 220, easing: Easing.in(Easing.cubic) };
  * and rendered in-tree (no portal), so it always opens on tap and follows
  * the keyboard frame-by-frame.
  */
-export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
+export function AmountSheet({ jar, mode, title, subtitle, submitLabel, onSubmit, onClose }: Props) {
   const insets = useSafeAreaInsets();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   const [value, setValue] = useState('');
   const [note, setNote] = useState('');
   // Keep the last jar rendered while the close animation runs.
@@ -181,12 +185,13 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
             </View>
             <View className="flex-1">
               <Text numberOfLines={1} className="font-display-semibold text-2xl text-ink">
-                {isAdd ? 'Add to' : 'Take from'} {shown.name}
+                {title ?? `${isAdd ? 'Add to' : 'Take from'} ${shown.name}`}
               </Text>
               <Text className="font-sans text-sm text-ink-muted">
-                {loan
-                  ? `Owed ${formatMoney(remainingOf(shown) ?? shown.saved, shown.currency)} · ${shown.interestRate}% / yr`
-                  : `Balance ${formatMoney(shown.saved, shown.currency)}`}
+                {subtitle ??
+                  (loan
+                    ? `Owed ${formatMoney(remainingOf(shown) ?? shown.saved, shown.currency)} · ${shown.interestRate}% / yr`
+                    : `Balance ${formatMoney(shown.saved, shown.currency)}`)}
               </Text>
             </View>
           </View>
@@ -237,7 +242,7 @@ export function AmountSheet({ jar, mode, onSubmit, onClose }: Props) {
           />
 
           <Button
-            title={isAdd ? 'Add money' : 'Take out money'}
+            title={submitLabel ?? (isAdd ? 'Add money' : 'Take out money')}
             icon={isAdd ? 'arrow-bottom-left' : 'arrow-top-right'}
             variant={isAdd ? 'primary' : 'accent'}
             disabled={invalid}

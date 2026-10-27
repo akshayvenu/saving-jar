@@ -20,6 +20,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { startSync } from '@/lib/sync';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useJarStore } from '@/store/useJarStore';
 import { surface } from '@/theme/colors';
@@ -53,6 +54,13 @@ export default function RootLayout() {
     nwColorScheme.set('light');
   }, []);
 
+  // Back up to the cloud once local data has loaded and an account is signed in.
+  const uid = user?.uid;
+  useEffect(() => {
+    if (!hasHydrated || !uid) return;
+    return startSync(uid);
+  }, [hasHydrated, uid]);
+
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
   }, [ready]);
@@ -77,6 +85,8 @@ export default function RootLayout() {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="jar/new" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="jar/[id]/edit" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="challenge/new" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="challenge/[id]" />
                 <Stack.Screen name="basket/[id]" />
                 <Stack.Screen name="baskets" />
                 <Stack.Screen name="archive" />

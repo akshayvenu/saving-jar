@@ -12,7 +12,7 @@ interface Props extends TextInputProps {
 }
 
 /** Label above a white block; the outline turns ink while focused. */
-export const TextField = forwardRef<TextInput, Props>(function TextField(
+export const TextField = forwardRef<React.ComponentRef<typeof TextInput>, Props>(function TextField(
   { label, helper, error, right, editable = true, className, onFocus, onBlur, ...rest },
   ref,
 ) {

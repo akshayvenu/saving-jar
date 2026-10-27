@@ -1,11 +1,20 @@
+import { router } from 'expo-router';
 import { memo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { IconButton } from '@/components/ui/icon-button';
+import { currentDay, remaining as challengeLeft } from '@/lib/challenge';
 import { formatMoney, formatPercent, formatShortDate } from '@/lib/format';
-import { daysUntilDeadline, jarIcon, progressOf, remainingOf } from '@/store/selectors';
+import {
+  activeChallengeFor,
+  daysUntilDeadline,
+  jarIcon,
+  progressOf,
+  remainingOf,
+} from '@/store/selectors';
+import { useJarStore } from '@/store/useJarStore';
 import { ink, jar as jarColors } from '@/theme/colors';
 import type { Jar } from '@/types';
 
@@ -46,6 +55,7 @@ export const JarCard = memo(function JarCard({
   const days = daysUntilDeadline(jar);
   const overdue = days != null && days < 0;
   const [expanded, setExpanded] = useState(false);
+  const challenge = useJarStore((s) => activeChallengeFor(s.challenges, jar.id));
 
   return (
     // Shadow lives on the outer view so the inner `overflow-hidden` can't clip it.
@@ -177,6 +187,25 @@ export const JarCard = memo(function JarCard({
                 </Text>
               )}
             </View>
+          )}
+
+          {challenge && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open spending challenge"
+              onPress={() =>
+                router.push({ pathname: '/challenge/[id]', params: { id: challenge.id } })
+              }
+              className="mt-3 flex-row items-center gap-2 self-start rounded-full border-hair border-ink bg-surface-card px-3 py-1.5"
+            >
+              <Icon name="timer-sand" size={14} color={ink.DEFAULT} />
+              <Text className="font-sans text-xs text-ink">
+                Challenge · Day {currentDay(challenge)}/{challenge.days} ·{' '}
+                {challengeLeft(challenge) < 0
+                  ? `${formatMoney(-challengeLeft(challenge), jar.currency)} over`
+                  : `${formatMoney(challengeLeft(challenge), jar.currency)} left`}
+              </Text>
+            </Pressable>
           )}
 
           {/* Actions */}

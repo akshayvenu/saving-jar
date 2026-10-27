@@ -5,17 +5,18 @@
   },
   "build": {
     "development": {
+      "node": "24.19.0",
       "developmentClient": true,
       "distribution": "internal"
     },
     "preview": {
+      "node": "24.19.0",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "ANDROID_BUILD_ARCHS": "arm64-v8a",
-        "ANDROID_COMPACT_APK": "1"
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a"
       }
     },
     "ios-simulator": {
@@ -25,6 +26,7 @@
       }
     },
     "production": {
+      "node": "24.19.0",
       "autoIncrement": true
     }
   },

@@ -31,6 +31,8 @@
     },
     "plugins": [
       "expo-router",
+      "expo-font",
+      "expo-status-bar",
       [
         "expo-splash-screen",
         {

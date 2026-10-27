@@ -51,4 +51,28 @@ export interface FieldChange {
   to: string;
 }
 
-export type JarInput = Omit<Jar, 'id' | 'createdAt' | 'pinned' | 'archived'> & { pinned?: boolean };
+export interface ChallengeExpense {
+  id: string;
+  /** 1-based day of the challenge the money was spent on. */
+  day: number;
+  amount: number;
+  note?: string;
+  createdAt: string;
+}
+
+/** A short spending budget on a jar. Expenses are tracked here only, not taken out of the jar. */
+export interface Challenge {
+  id: string;
+  jarId: string;
+  /** Total budget in minor units; the daily limit is `budget / days`. */
+  budget: number;
+  days: number;
+  /** ISO timestamp of local midnight on day 1. */
+  startDate: string;
+  expenses: ChallengeExpense[];
+  /** Set when ended early or once the surplus is moved. */
+  endedAt?: string;
+  transfer?: { jarId: string; amount: number; at: string };
+}
+
+export type JarInput =Omit<Jar, 'id' | 'createdAt' | 'pinned' | 'archived'> & { pinned?: boolean };

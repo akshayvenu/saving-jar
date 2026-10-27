@@ -1,5 +1,6 @@
+import { isActive } from '@/lib/challenge';
 import { CURRENCIES } from '@/lib/format';
-import type { CurrencyCode, Jar, SortDir, SortKey } from '@/types';
+import type { Challenge, CurrencyCode, Jar, SortDir, SortKey } from '@/types';
 
 export const progressOf = (jar: Jar) =>
   jar.goal && jar.goal > 0 ? Math.min(jar.saved / jar.goal, 1) : 0;
@@ -90,3 +91,7 @@ export function daysUntilDeadline(jar: Jar, now = new Date()): number | null {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   return Math.round((due - today) / 86_400_000);
 }
+
+/** The jar's running challenge, if any. */
+export const activeChallengeFor = (challenges: Challenge[], jarId: string, now = new Date()) =>
+  challenges.find((c) => c.jarId === jarId && isActive(c, now));

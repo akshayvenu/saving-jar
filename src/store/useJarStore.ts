@@ -2,11 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { isActive, surplus } from '@/lib/challenge';
 import { formatDate, formatMoney } from '@/lib/format';
 import { splitPayment } from '@/store/selectors';
 import { jar as jarColors } from '@/theme/colors';
 import type {
     Basket,
+    Challenge,
     CurrencyCode,
     FieldChange,
     Jar,
@@ -66,10 +68,12 @@ function describeChanges(prev: Jar, next: Jar, baskets: Basket[]): FieldChange[]
     .map(([label, from, to]) => ({ label, from, to }));
 }
 
-interface JarState {
+/** Everything that is backed up to the cloud and swapped as a unit when syncing. */
+export interface SyncData {
   jars: Jar[];
   baskets: Basket[];
   transactions: Transaction[];
+  challenges: Challenge[];
   /** Account suggestions the user removed from the jar form (lowercased). */
   hiddenAccounts: string[];
   sortKey: SortKey;
@@ -77,6 +81,11 @@ interface JarState {
   defaultCurrency: CurrencyCode;
   /** Masks money amounts on Home so they can't be read over the shoulder. */
   hideAmounts: boolean;
+}
+
+interface JarState extends SyncData {
+  /** Account the local data belongs to; unset for data from before cloud sync existed. */
+  ownerUid?: string;
   /** True once saved data has been loaded from device storage. */
   hasHydrated: boolean;
 
@@ -89,6 +98,14 @@ interface JarState {
   /** Positive `amount` in minor units. Minus never drops below zero. */
   applyAmount: (jarId: string, type: 'add' | 'minus', amount: number, note?: string) => void;
 
+  /** One running challenge per jar; returns the new id, or the running one's. */
+  startChallenge: (jarId: string, budget: number, days: number) => string;
+  logExpense: (challengeId: string, day: number, amount: number, note?: string) => void;
+  removeExpense: (challengeId: string, expenseId: string) => void;
+  endChallenge: (challengeId: string) => void;
+  /** Moves the unspent budget into `toJarId` once; no-op if already moved or nothing is left. */
+  transferSurplus: (challengeId: string, toJarId: string) => void;
+
   addBasket: (name: string, color?: JarColor) => string;
   renameBasket: (id: string, name: string) => void;
   recolorBasket: (id: string, color: JarColor) => void;
@@ -98,6 +115,11 @@ interface JarState {
   setSortDir: (dir: SortDir) => void;
   setDefaultCurrency: (c: CurrencyCode) => void;
   toggleHideAmounts: () => void;
+
+  /** Swaps in data pulled from the cloud (or merged) and records which account owns it. */
+  replaceData: (data: SyncData, ownerUid: string) => void;
+  /** Wipes local data back to a fresh install for `ownerUid`. */
+  resetData: (ownerUid: string) => void;
 }
 
 const defaultBaskets: Basket[] = [
@@ -107,10 +129,11 @@ const defaultBaskets: Basket[] = [
 
 export const useJarStore = create<JarState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       jars: [],
       baskets: defaultBaskets,
       transactions: [],
+      challenges: [],
       hiddenAccounts: [],
       sortKey: 'manual',
       sortDir: 'desc',
@@ -171,6 +194,7 @@ export const useJarStore = create<JarState>()(
         set((s) => ({
           jars: s.jars.filter((j) => j.id !== id),
           transactions: s.transactions.filter((t) => t.jarId !== id),
+          challenges: s.challenges.filter((c) => c.jarId !== id),
         })),
       hideAccount: (name) =>
         set((s) => ({ hiddenAccounts: [...s.hiddenAccounts, name.trim().toLowerCase()] })),
@@ -206,6 +230,83 @@ export const useJarStore = create<JarState>()(
           };
         }),
 
+      startChallenge: (jarId, budget, days) => {
+        const running = get().challenges.find((c) => c.jarId === jarId && isActive(c));
+        if (running) return running.id;
+        const id = uid();
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        set((s) => ({
+          challenges: [{ id, jarId, budget, days, startDate, expenses: [] }, ...s.challenges],
+        }));
+        return id;
+      },
+      logExpense: (challengeId, day, amount, note) =>
+        set((s) => {
+          if (amount <= 0) return s;
+          return {
+            challenges: s.challenges.map((c) =>
+              c.id === challengeId && !c.endedAt
+                ? {
+                    ...c,
+                    expenses: [
+                      ...c.expenses,
+                      {
+                        id: uid(),
+                        day,
+                        amount,
+                        note: note?.trim() || undefined,
+                        createdAt: new Date().toISOString(),
+                      },
+                    ],
+                  }
+                : c,
+            ),
+          };
+        }),
+      removeExpense: (challengeId, expenseId) =>
+        set((s) => ({
+          challenges: s.challenges.map((c) =>
+            c.id === challengeId && !c.transfer
+              ? { ...c, expenses: c.expenses.filter((e) => e.id !== expenseId) }
+              : c,
+          ),
+        })),
+      endChallenge: (challengeId) =>
+        set((s) => ({
+          challenges: s.challenges.map((c) =>
+            c.id === challengeId && !c.endedAt ? { ...c, endedAt: new Date().toISOString() } : c,
+          ),
+        })),
+      transferSurplus: (challengeId, toJarId) =>
+        set((s) => {
+          const c = s.challenges.find((x) => x.id === challengeId);
+          const target = s.jars.find((j) => j.id === toJarId);
+          if (!c || !target || c.transfer) return s;
+          const amount = surplus(c);
+          if (amount <= 0) return s;
+          const at = new Date().toISOString();
+          const next = target.saved + amount;
+          const tx: Transaction = {
+            id: uid(),
+            jarId: toJarId,
+            type: 'add',
+            amount,
+            balanceAfter: next,
+            note: 'Spending challenge surplus',
+            createdAt: at,
+          };
+          return {
+            jars: s.jars.map((j) => (j.id === toJarId ? { ...j, saved: next } : j)),
+            transactions: [tx, ...s.transactions],
+            challenges: s.challenges.map((x) =>
+              x.id === challengeId
+                ? { ...x, endedAt: x.endedAt ?? at, transfer: { jarId: toJarId, amount, at } }
+                : x,
+            ),
+          };
+        }),
+
       addBasket: (name, color) => {
         const id = uid();
         set((s) => ({
@@ -232,10 +333,25 @@ export const useJarStore = create<JarState>()(
       setSortDir: (sortDir) => set({ sortDir }),
       setDefaultCurrency: (defaultCurrency) => set({ defaultCurrency }),
       toggleHideAmounts: () => set((s) => ({ hideAmounts: !s.hideAmounts })),
+
+      replaceData: (data, ownerUid) => set({ ...data, ownerUid }),
+      resetData: (ownerUid) =>
+        set({
+          ownerUid,
+          jars: [],
+          baskets: defaultBaskets,
+          transactions: [],
+          challenges: [],
+          hiddenAccounts: [],
+          sortKey: 'manual',
+          sortDir: 'desc',
+          defaultCurrency: 'INR',
+          hideAmounts: false,
+        }),
     }),
     {
       name: 'jamjars-store',
-      version: 4,
+      version: 6,
       storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {
         const state = persisted as Partial<JarState>;
@@ -270,12 +386,15 @@ export const useJarStore = create<JarState>()(
             basketId: category === 'investment' && !j.basketId ? investId : j.basketId,
           }));
         }
+        if (version < 5) state.challenges = [];
         return state as JarState;
       },
       partialize: (s) => ({
         jars: s.jars,
         baskets: s.baskets,
         transactions: s.transactions,
+        challenges: s.challenges,
+        ownerUid: s.ownerUid,
         hiddenAccounts: s.hiddenAccounts,
         sortKey: s.sortKey,
         sortDir: s.sortDir,

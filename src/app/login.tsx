@@ -5,6 +5,7 @@ import { BrandMark } from '@/components/ui/brand-mark';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { signInWithGoogle } from '@/lib/google-auth';
+import { devSignIn } from '@/store/useAuthStore';
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
@@ -35,6 +36,9 @@ export default function LoginScreen() {
       <View className="gap-3 px-5 pb-12">
         {error && <Text className="text-center font-sans text-sm text-danger">{error}</Text>}
         <Button title="Continue with Google" icon="google" loading={loading} onPress={onPress} />
+        {__DEV__ && (
+          <Button title="Skip login (dev only)" variant="outline" compact onPress={devSignIn} />
+        )}
       </View>
     </Screen>
   );

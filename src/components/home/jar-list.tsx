@@ -11,7 +11,7 @@ import { TotalsCard } from '@/components/home/totals-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { OptionSheet } from '@/components/ui/option-sheet';
 import { SectionLabel } from '@/components/ui/section-label';
-import { NO_BASKET_LABEL, computeTotals, sortJars } from '@/store/selectors';
+import { NO_BASKET_LABEL, activeChallengeFor, computeTotals, sortJars } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
 import type { Jar } from '@/types';
 
@@ -29,6 +29,7 @@ export function JarList({ jars, grouped, emptyText }: Props) {
   const baskets = useJarStore((s) => s.baskets);
   const sortKey = useJarStore((s) => s.sortKey);
   const sortDir = useJarStore((s) => s.sortDir);
+  const challenges = useJarStore((s) => s.challenges);
   const { togglePin, toggleArchive, deleteJar, applyAmount } = useJarStore.getState();
 
   const [target, setTarget] = useState<{ jar: Jar | null; mode: AmountMode }>({
@@ -140,6 +141,17 @@ export function JarList({ jars, grouped, emptyText }: Props) {
             icon: 'basket-outline',
           },
           { key: 'history', label: 'History & stats', icon: 'history' },
+          ...(moreJar && !moreJar.debt
+            ? [
+                {
+                  key: 'challenge',
+                  label: activeChallengeFor(challenges, moreJar.id)
+                    ? 'View spending challenge'
+                    : 'Start spending challenge',
+                  icon: 'timer-sand' as const,
+                },
+              ]
+            : []),
           { key: 'edit', label: 'Edit jar', icon: 'pencil-outline' },
           { key: 'archive', label: 'Archive', icon: 'archive-outline' },
           { key: 'delete', label: 'Delete jar', icon: 'trash-can-outline', destructive: true },
@@ -153,6 +165,14 @@ export function JarList({ jars, grouped, emptyText }: Props) {
           // iOS can't present a modal while the "more" one is still fading out.
           if (k === 'basket') setTimeout(() => setBasketJar(j), 300);
           if (k === 'history') onHistory(j);
+          if (k === 'challenge') {
+            const running = activeChallengeFor(challenges, j.id);
+            router.push(
+              running
+                ? { pathname: '/challenge/[id]', params: { id: running.id } }
+                : { pathname: '/challenge/new', params: { jarId: j.id } },
+            );
+          }
           if (k === 'edit') onEdit(j);
           if (k === 'archive') onArchive(j);
           if (k === 'delete') onDelete(j);

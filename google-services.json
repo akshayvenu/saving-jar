@@ -12,7 +12,20 @@
           "package_name": "com.akshayvenu.savingjar"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "969589447623-oo7jvu1dl9v4s0bmhr87g3u6m8s7fava.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.akshayvenu.savingjar",
+            "certificate_hash": "841f3576c6aaa157791154c7d262d45a4795131f"
+          }
+        },
+        {
+          "client_id": "969589447623-urpejhl9qrsgqusma30kgrcu5j8m17br.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAI3h0Cy2c1qJqOIjGBkTPijGbvVVucBs8"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "969589447623-urpejhl9qrsgqusma30kgrcu5j8m17br.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
