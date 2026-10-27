@@ -3,17 +3,21 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { BrandMark } from '@/components/ui/brand-mark';
+import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionLabel } from '@/components/ui/section-label';
 import { SelectField } from '@/components/ui/select-field';
 import { CURRENCIES } from '@/lib/format';
+import { signOut } from '@/lib/google-auth';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useJarStore } from '@/store/useJarStore';
 import { ink } from '@/theme/colors';
 
 export default function SettingsScreen() {
   const { defaultCurrency, setDefaultCurrency } = useJarStore();
+  const user = useAuthStore((s) => s.user);
   return (
     <Screen>
       <ScreenHeader title="Settings" />
@@ -38,6 +42,16 @@ export default function SettingsScreen() {
           <Text className="flex-1 font-display-semibold text-base text-ink">Archived jars</Text>
           <Icon name="chevron-right" size={20} color={ink.muted} />
         </Pressable>
+        <SectionLabel>Account</SectionLabel>
+        <View className="gap-3 rounded-jar border-hair border-ink bg-surface-card p-4">
+          <View>
+            <Text className="font-display-semibold text-base text-ink">
+              {user?.name ?? 'Signed in'}
+            </Text>
+            {user?.email && <Text className="font-sans text-sm text-ink-muted">{user.email}</Text>}
+          </View>
+          <Button title="Sign out" variant="outline" icon="logout" compact onPress={signOut} />
+        </View>
         <View className="mt-12 items-center gap-3">
           <BrandMark size={14} />
           <Text className="font-display-bold text-xl text-ink">Saving Jar</Text>

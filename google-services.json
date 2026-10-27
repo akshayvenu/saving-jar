@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "969589447623",
+    "project_id": "saving-jar-zaibonk",
+    "storage_bucket": "saving-jar-zaibonk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:969589447623:android:980e2b8b7387f66a7557e2",
+        "android_client_info": {
+          "package_name": "com.akshayvenu.savingjar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAI3h0Cy2c1qJqOIjGBkTPijGbvVVucBs8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

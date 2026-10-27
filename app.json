@@ -8,7 +8,11 @@
     "scheme": "savingjar",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.akshayvenu.savingjar",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.akshayvenu.savingjar"
+      "package": "com.akshayvenu.savingjar",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -36,6 +41,7 @@
       ],
       "@react-native-community/datetimepicker",
       "./plugins/with-material3-theme",
+      "@react-native-google-signin/google-signin",
       [
         "expo-build-properties",
         {

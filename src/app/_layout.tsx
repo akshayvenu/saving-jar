@@ -20,6 +20,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/ui/icon';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useJarStore } from '@/store/useJarStore';
 import { surface } from '@/theme/colors';
 
@@ -44,7 +45,9 @@ export default function RootLayout() {
     ...Icon.font,
   });
   const hasHydrated = useJarStore((s) => s.hasHydrated);
-  const ready = fontsLoaded && hasHydrated;
+  const user = useAuthStore((s) => s.user);
+  const authReady = useAuthStore((s) => s.initialized);
+  const ready = fontsLoaded && hasHydrated && authReady;
 
   useEffect(() => {
     nwColorScheme.set('light');
@@ -67,13 +70,18 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: surface.DEFAULT },
               }}
             >
-              <Stack.Screen name="index" />
-              <Stack.Screen name="jar/new" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="jar/[id]/edit" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="basket/[id]" />
-              <Stack.Screen name="baskets" />
-              <Stack.Screen name="archive" />
-              <Stack.Screen name="settings" />
+              <Stack.Protected guard={!user}>
+                <Stack.Screen name="login" />
+              </Stack.Protected>
+              <Stack.Protected guard={!!user}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="jar/new" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="jar/[id]/edit" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="basket/[id]" />
+                <Stack.Screen name="baskets" />
+                <Stack.Screen name="archive" />
+                <Stack.Screen name="settings" />
+              </Stack.Protected>
             </Stack>
             <StatusBar style="dark" />
           </BottomSheetModalProvider>

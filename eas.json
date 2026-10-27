@@ -18,6 +18,12 @@
         "ANDROID_COMPACT_APK": "1"
       }
     },
+    "ios-simulator": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
     "production": {
       "autoIncrement": true
     }
