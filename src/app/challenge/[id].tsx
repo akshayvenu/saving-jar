@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChallengeHero } from '@/components/challenge/challenge-hero';
 import { DayCard } from '@/components/challenge/day-card';
+import { DayStrip } from '@/components/challenge/day-strip';
 import { SurplusCard } from '@/components/challenge/surplus-card';
 import { TransferAnimation } from '@/components/challenge/transfer-animation';
 import { AmountSheet } from '@/components/home/amount-sheet';
@@ -14,7 +15,7 @@ import { OptionSheet } from '@/components/ui/option-sheet';
 import { Screen } from '@/components/ui/screen';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { SectionLabel } from '@/components/ui/section-label';
-import { currentDay, dailyLimit, isFinished, spentOnDay, surplus } from '@/lib/challenge';
+import { currentDay, dailyLimit, isFinished, spentOnDay } from '@/lib/challenge';
 import { formatMoney } from '@/lib/format';
 import { jarIcon } from '@/store/selectors';
 import { useJarStore } from '@/store/useJarStore';
@@ -30,6 +31,8 @@ export default function ChallengeScreen() {
     useJarStore.getState();
 
   const [logDay, setLogDay] = useState<number | null>(null);
+  /** Day shown in the card; null follows today. */
+  const [pickedDay, setPickedDay] = useState<number | null>(null);
   const [pickOpen, setPickOpen] = useState(false);
   const [moving, setMoving] = useState<{ to: Jar; amount: number } | null>(null);
 
@@ -56,7 +59,7 @@ export default function ChallengeScreen() {
 
   const finished = isFinished(challenge);
   const today = currentDay(challenge);
-  const days = Array.from({ length: challenge.days }, (_, i) => i + 1);
+  const shownDay = pickedDay != null && pickedDay <= today ? pickedDay : today;
   const money = (v: number) => formatMoney(v, jar.currency);
 
   const confirmEnd = () =>
@@ -90,33 +93,33 @@ export default function ChallengeScreen() {
         <ChallengeHero challenge={challenge} jar={jar} />
 
         <View className="px-5">
-          <SectionLabel>Days</SectionLabel>
+          <SectionLabel meta={`${challenge.expenses.length} logged`}>Days</SectionLabel>
         </View>
-        {days.map((d) => (
-          <DayCard
-            key={d}
-            challenge={challenge}
-            day={d}
-            today={today}
-            currency={jar.currency}
-            canLog={!finished}
-            onLog={setLogDay}
-            onRemove={confirmRemove}
-          />
-        ))}
+        <DayStrip challenge={challenge} today={today} selected={shownDay} onSelect={setPickedDay} />
+        <View className="h-3" />
+        <DayCard
+          challenge={challenge}
+          day={shownDay}
+          today={today}
+          currency={jar.currency}
+          canLog={!finished}
+          onLog={setLogDay}
+          onRemove={confirmRemove}
+        />
 
         <View className="px-5">
           <SectionLabel>Surplus</SectionLabel>
         </View>
         <SurplusCard
           challenge={challenge}
+          amount={jar.saved}
           currency={jar.currency}
           movedTo={movedTo}
           onEnd={confirmEnd}
           onMove={() => setPickOpen(true)}
         />
         <Text className="mx-5 mt-3 text-center font-sans text-xs text-ink-muted">
-          Expenses are tracked here only. Moving the surplus to another jar deletes {jar.name}.
+          Expenses are taken out of {jar.name}. Moving the surplus to another jar deletes it.
         </Text>
       </ScrollView>
 
@@ -166,7 +169,7 @@ export default function ChallengeScreen() {
           if (!to) return;
           // Moving the surplus closes out this jar, so it goes with its history.
           Alert.alert(
-            `Move ${money(surplus(challenge))} to ${to.name}?`,
+            `Move ${money(jar.saved)} to ${to.name}?`,
             `"${jar.name}" and its history will be deleted. This can't be undone.`,
             [
               { text: 'Cancel', style: 'cancel' },
@@ -174,7 +177,7 @@ export default function ChallengeScreen() {
                 text: 'Move & delete',
                 style: 'destructive',
                 // Animate first; the real transfer and delete happen when it finishes.
-                onPress: () => setMoving({ to, amount: surplus(challenge) }),
+                onPress: () => setMoving({ to, amount: jar.saved }),
               },
             ],
           );

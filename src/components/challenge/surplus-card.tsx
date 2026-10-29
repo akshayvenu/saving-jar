@@ -2,13 +2,15 @@ import { Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import { isFinished, surplus } from '@/lib/challenge';
+import { isFinished } from '@/lib/challenge';
 import { formatMoney } from '@/lib/format';
 import { success } from '@/theme/colors';
 import type { Challenge, CurrencyCode } from '@/types';
 
 interface Props {
   challenge: Challenge;
+  /** What the jar still holds; expenses have already come out of it. */
+  amount: number;
   currency: CurrencyCode;
   /** Name of the jar the surplus went to, once moved. */
   movedTo?: string;
@@ -17,8 +19,7 @@ interface Props {
 }
 
 /** The real, unspent money: end early while running, then move it into a jar once it's over. */
-export function SurplusCard({ challenge, currency, movedTo, onEnd, onMove }: Props) {
-  const amount = surplus(challenge);
+export function SurplusCard({ challenge, amount, currency, movedTo, onEnd, onMove }: Props) {
   const finished = isFinished(challenge);
   const money = (v: number) => formatMoney(v, currency);
 

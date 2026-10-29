@@ -56,11 +56,13 @@ export interface ChallengeExpense {
   /** 1-based day of the challenge the money was spent on. */
   day: number;
   amount: number;
+  /** What was actually taken out of the jar; less than `amount` once the jar hits zero. */
+  deducted?: number;
   note?: string;
   createdAt: string;
 }
 
-/** A short spending budget on a jar. Expenses are tracked here only, not taken out of the jar. */
+/** A short spending budget on a jar. Logged expenses are taken out of the jar's balance. */
 export interface Challenge {
   id: string;
   jarId: string;

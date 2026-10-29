@@ -2,13 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { isActive, surplus } from '@/lib/challenge';
+import { isActive } from '@/lib/challenge';
 import { formatDate, formatMoney } from '@/lib/format';
 import { splitPayment } from '@/store/selectors';
 import { jar as jarColors } from '@/theme/colors';
 import type {
     Basket,
     Challenge,
+    ChallengeExpense,
     CurrencyCode,
     FieldChange,
     Jar,
@@ -38,6 +39,21 @@ const unhide = (hidden: string[], account?: string) =>
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Takes a challenge expense out of its jar (never below zero) and logs it in the jar's history. */
+function chargeExpense(jars: Jar[], jarId: string, amount: number, note: string, createdAt: string) {
+  const jar = jars.find((j) => j.id === jarId);
+  if (!jar) return { jars, deducted: 0, tx: null };
+  const next = Math.max(0, jar.saved - amount);
+  const deducted = jar.saved - next;
+  const tx: Transaction | null = deducted
+    ? { id: uid(), jarId, type: 'minus', amount: deducted, balanceAfter: next, note, createdAt }
+    : null;
+  return { jars: jars.map((j) => (j.id === jarId ? { ...j, saved: next } : j)), deducted, tx };
+}
+
+const expenseNote = (e: Pick<ChallengeExpense, 'day' | 'note'>) =>
+  e.note ? `${e.note} · Challenge day ${e.day}` : `Challenge day ${e.day}`;
 
 /** Human-readable diff of everything but the balance, for the history log. */
 function describeChanges(prev: Jar, next: Jar, baskets: Basket[]): FieldChange[] {
@@ -103,7 +119,7 @@ interface JarState extends SyncData {
   logExpense: (challengeId: string, day: number, amount: number, note?: string) => void;
   removeExpense: (challengeId: string, expenseId: string) => void;
   endChallenge: (challengeId: string) => void;
-  /** Moves the unspent budget into `toJarId` once; no-op if already moved or nothing is left. */
+  /** Moves what's left in the challenge's jar into `toJarId` once; no-op if already moved or empty. */
   transferSurplus: (challengeId: string, toJarId: string) => void;
 
   addBasket: (name: string, color?: JarColor) => string;
@@ -243,35 +259,63 @@ export const useJarStore = create<JarState>()(
       },
       logExpense: (challengeId, day, amount, note) =>
         set((s) => {
-          if (amount <= 0) return s;
+          const c = s.challenges.find((x) => x.id === challengeId);
+          if (!c || c.endedAt || amount <= 0) return s;
+          const createdAt = new Date().toISOString();
+          const trimmed = note?.trim() || undefined;
+          const charged = chargeExpense(
+            s.jars,
+            c.jarId,
+            amount,
+            expenseNote({ day, note: trimmed }),
+            createdAt,
+          );
+          const expense: ChallengeExpense = {
+            id: uid(),
+            day,
+            amount,
+            deducted: charged.deducted,
+            note: trimmed,
+            createdAt,
+          };
           return {
-            challenges: s.challenges.map((c) =>
-              c.id === challengeId && !c.endedAt
-                ? {
-                    ...c,
-                    expenses: [
-                      ...c.expenses,
-                      {
-                        id: uid(),
-                        day,
-                        amount,
-                        note: note?.trim() || undefined,
-                        createdAt: new Date().toISOString(),
-                      },
-                    ],
-                  }
-                : c,
+            jars: charged.jars,
+            transactions: charged.tx ? [charged.tx, ...s.transactions] : s.transactions,
+            challenges: s.challenges.map((x) =>
+              x.id === challengeId ? { ...x, expenses: [...x.expenses, expense] } : x,
             ),
           };
         }),
       removeExpense: (challengeId, expenseId) =>
-        set((s) => ({
-          challenges: s.challenges.map((c) =>
-            c.id === challengeId && !c.transfer
-              ? { ...c, expenses: c.expenses.filter((e) => e.id !== expenseId) }
-              : c,
-          ),
-        })),
+        set((s) => {
+          const c = s.challenges.find((x) => x.id === challengeId);
+          const expense = c?.expenses.find((e) => e.id === expenseId);
+          if (!c || !expense || c.transfer) return s;
+          const challenges = s.challenges.map((x) =>
+            x.id === challengeId
+              ? { ...x, expenses: x.expenses.filter((e) => e.id !== expenseId) }
+              : x,
+          );
+          // Give back only what was actually taken from the jar.
+          const jar = s.jars.find((j) => j.id === c.jarId);
+          const refund = expense.deducted ?? 0;
+          if (!jar || refund <= 0) return { challenges };
+          const next = jar.saved + refund;
+          const tx: Transaction = {
+            id: uid(),
+            jarId: jar.id,
+            type: 'add',
+            amount: refund,
+            balanceAfter: next,
+            note: `Removed · ${expenseNote(expense)}`,
+            createdAt: new Date().toISOString(),
+          };
+          return {
+            challenges,
+            jars: s.jars.map((j) => (j.id === jar.id ? { ...j, saved: next } : j)),
+            transactions: [tx, ...s.transactions],
+          };
+        }),
       endChallenge: (challengeId) =>
         set((s) => ({
           challenges: s.challenges.map((c) =>
@@ -282,9 +326,9 @@ export const useJarStore = create<JarState>()(
         set((s) => {
           const c = s.challenges.find((x) => x.id === challengeId);
           const target = s.jars.find((j) => j.id === toJarId);
-          if (!c || !target || c.transfer) return s;
-          const amount = surplus(c);
-          if (amount <= 0) return s;
+          // Expenses already came out of the jar, so whatever it still holds is the surplus.
+          const amount = s.jars.find((j) => j.id === c?.jarId)?.saved ?? 0;
+          if (!c || !target || c.transfer || amount <= 0) return s;
           const at = new Date().toISOString();
           const next = target.saved + amount;
           const tx: Transaction = {
@@ -297,7 +341,9 @@ export const useJarStore = create<JarState>()(
             createdAt: at,
           };
           return {
-            jars: s.jars.map((j) => (j.id === toJarId ? { ...j, saved: next } : j)),
+            jars: s.jars.map((j) =>
+              j.id === toJarId ? { ...j, saved: next } : j.id === c.jarId ? { ...j, saved: 0 } : j,
+            ),
             transactions: [tx, ...s.transactions],
             challenges: s.challenges.map((x) =>
               x.id === challengeId
@@ -351,7 +397,7 @@ export const useJarStore = create<JarState>()(
     }),
     {
       name: 'jamjars-store',
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => (isServer ? serverStorage : AsyncStorage)),
       migrate: (persisted, version) => {
         const state = persisted as Partial<JarState>;
@@ -387,6 +433,26 @@ export const useJarStore = create<JarState>()(
           }));
         }
         if (version < 5) state.challenges = [];
+        if (version < 7) {
+          // Expenses used to be tracked only; take the ones already logged out of their jars.
+          let jars = state.jars ?? [];
+          let transactions = state.transactions ?? [];
+          // Dated now so the jar's balance history stays in order.
+          const now = new Date().toISOString();
+          state.challenges = (state.challenges ?? []).map((c) => {
+            if (c.transfer) return c;
+            const expenses = c.expenses.map((e) => {
+              if (e.deducted != null) return e;
+              const charged = chargeExpense(jars, c.jarId, e.amount, expenseNote(e), now);
+              jars = charged.jars;
+              if (charged.tx) transactions = [charged.tx, ...transactions];
+              return { ...e, deducted: charged.deducted };
+            });
+            return { ...c, expenses };
+          });
+          state.jars = jars;
+          state.transactions = transactions;
+        }
         return state as JarState;
       },
       partialize: (s) => ({
